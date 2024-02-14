@@ -26,7 +26,7 @@ program
             });
 
             // toggle options for files/directories
-            const { includeSrc, includeTest, startGitRepo, includeDependabot, includeReadme, includeContributing, includeChangelog, includeLicense } = await inquirer.prompt([
+            const { includeSrc, includeTest, startGitRepo, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeLicense } = await inquirer.prompt([
                 {
                     type: 'confirm',
                     name: 'includeSrc', // src prompt
@@ -53,6 +53,12 @@ program
                 },
                 {
                     type: 'confirm',
+                    name: 'includeGitIgnore', // .gitignore prompt
+                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('.gitignore')} file? `),
+                    default: true
+                },
+                {
+                    type: 'confirm',
                     name: 'includeReadme', // readme prompt
                     message: chalk.cyan(`Would you like to include a ${chalk.magenta('README')} file?`),
                     default: true
@@ -72,13 +78,13 @@ program
             ]);
 
             // Create package structure and update package.json
-            await createPkgStructure(packageName, description, options, includeSrc, includeTest, startGitRepo, includeDependabot, includeReadme, includeContributing, includeLicense);
+            await createPkgStructure(packageName, description, options, includeSrc, includeTest, startGitRepo, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeLicense);
         } catch (err) {
             console.error(`Error initializing package: ${err}`);
         }
     });
 
-async function createPkgStructure(packageName, description, options, includeSrc, includeTest, startGitRepo, includeDependabot, includeReadme, includeContributing, includeLicense) {
+async function createPkgStructure(packageName, description, options, includeSrc, includeTest, startGitRepo, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeLicense) {
     const spinner = ora('Creating package structure...').start();
 
     try {
@@ -116,6 +122,13 @@ async function createPkgStructure(packageName, description, options, includeSrc,
             const dependabot = 'dependabot.yml';
             const dependabotFile = path.join(WorkflowsFolder, dependabot);
             await fs.writeFile(dependabotFile, 'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    directory: "/"\n    schedule:\n     interval: "daily"', 'utf-8');
+        }
+
+        // .gitignore
+        if (includeGitIgnore) {
+            const gitignoreContent = `node_modules/`;
+            const gitignoreFile = path.join(process.cwd(), '.gitignore');
+            await fs.writeFile(gitignoreFile, gitignoreContent, 'utf8');
         }
 
         // template README.md
