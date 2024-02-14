@@ -26,7 +26,7 @@ program
             });
 
             // toggle options for files/directories
-            const { includeSrc, includeTest, startGitRepo, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeLicense } = await inquirer.prompt([
+            const { includeSrc, includeTest, startGitRepo, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense } = await inquirer.prompt([
                 {
                     type: 'confirm',
                     name: 'includeSrc', // src prompt
@@ -71,6 +71,12 @@ program
                 },
                 {
                     type: 'confirm',
+                    name: 'includeChangelog', // changelog prompt
+                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('changelog')} file?`),
+                    default: true
+                },
+                {
+                    type: 'confirm',
                     name: 'includeLicense', // license prompt
                     message: chalk.cyan(`Would you like to include a ${chalk.magenta('LICENSE')} file?`),
                     default: true
@@ -78,13 +84,13 @@ program
             ]);
 
             // Create package structure and update package.json
-            await createPkgStructure(packageName, description, options, includeSrc, includeTest, startGitRepo, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeLicense);
+            await createPkgStructure(packageName, description, options, includeSrc, includeTest, startGitRepo, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense);
         } catch (err) {
             console.error(`Error initializing package: ${err}`);
         }
     });
 
-async function createPkgStructure(packageName, description, options, includeSrc, includeTest, startGitRepo, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeLicense) {
+async function createPkgStructure(packageName, description, options, includeSrc, includeTest, startGitRepo, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
     const spinner = ora('Creating package structure...').start();
 
     try {
@@ -142,6 +148,13 @@ async function createPkgStructure(packageName, description, options, includeSrc,
         if (includeContributing) {
             const contributingFile = path.join(process.cwd(), 'CONTRIBUTING.md');
             await fs.writeFile(contributingFile, '', 'utf8');
+        }
+
+        // CHANGELOG.md
+        if (includeChangelog) {
+            const changelogContent = `# Changelog\n\n# v1.0.0`;
+            const changelogFile = path.join(process.cwd(),  'CHANGELOG.md');
+            await fs.writeFile(changelogFile, changelogContent , 'utf8');
         }
 
         // LICENSE
