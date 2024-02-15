@@ -1,6 +1,6 @@
 {
   "name": "create-ps",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Creates a foundation for your NPM package.",
   "main": "index.mjs",
   "bin": {
