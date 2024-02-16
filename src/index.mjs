@@ -262,7 +262,7 @@ program
                 {
                     type: 'list',
                     name: 'bugsType',
-                    message: chalk.cyan(`Choose the type of ${chalk.magenta('bugs')} URL or email:`),
+                    message: chalk.cyan(`Choose the type of way you'd like to specify the ${chalk.magenta('bugs')} field:`),
                     choices: ['URL', 'Email']
                 }
             ]);
@@ -277,7 +277,7 @@ program
                     {
                         type: 'input',
                         name: 'bugsURL',
-                        message: chalk.cyan(`Enter the ${chalk.magenta('bugs')} URL:`)
+                        message: chalk.cyan(`Enter the ${chalk.magenta('URL')} to report bugs to:`)
                     }
                 ]);
                 if (bugsURL) packageJson.bugs = { url: bugsURL };
@@ -286,14 +286,16 @@ program
                     {
                         type: 'input',
                         name: 'bugsEmail',
-                        message: chalk.cyan(`Enter the ${chalk.magenta('bugs')} email:`)
+                        message: chalk.cyan(`Enter the ${chalk.magenta('email')} to report bugs to:`)
                     }
                 ]);
                 if (bugsEmail) packageJson.bugs = { email: bugsEmail };
             }
 
             await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+            console.log();
             console.log(chalk.green(`Success! Your package.json has been updated successfully.`));
+            console.log();
         } catch (err) {
             console.error(chalk.red(`Error updating package.json: ${err}`));
         }
