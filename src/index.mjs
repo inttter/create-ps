@@ -26,7 +26,7 @@ program
             });
 
             // toggle options for files/directories
-            const { includeSrc, includeTest, includeExamples, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense } = await inquirer.prompt([
+            const { includeSrc, includeTest, includeExamples, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense } = await inquirer.prompt([
                 {
                     type: 'confirm',
                     name: 'includeSrc', // src prompt
@@ -88,13 +88,19 @@ program
                 },
                 {
                     type: 'confirm',
+                    name: 'includeAssets', // assets prompt
+                    message: chalk.cyan(`Would you like to include an ${chalk.magenta('assets')} folder?`),
+                    default: true
+                },
+                {
+                    type: 'confirm',
                     name: 'includeLicense', // license prompt
                     message: chalk.cyan(`Would you like to include a ${chalk.magenta('LICENSE')} file?`),
                     default: true
                 }
             ]);
 
-            await createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense);
+            await createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense);
 
             // start a git repo (git init)
             if (startGitRepo) {
@@ -109,7 +115,7 @@ program
         }
     });
 
-    async function createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
+    async function createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, startGitRepo, includeDependabot, includeWorkflows, includeAssets, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
         const spinner = ora('Creating package structure...').start();
     
         try {
@@ -196,6 +202,12 @@ program
                 const changelogContent = `# Changelog\n\n# v1.0.0`;
                 const changelogFile = path.join(process.cwd(),  'CHANGELOG.md');
                 await fs.writeFile(changelogFile, changelogContent , 'utf8');
+            }
+
+            // assets (ie. images for documentation, example screenshots, logo's, etc...)
+            if (includeAssets) {
+                const assetsDir = path.join(process.cwd(), 'assets');
+                await fs.ensureDir(assetsDir);
             }
     
             // LICENSE
