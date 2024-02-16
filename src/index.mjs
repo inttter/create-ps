@@ -12,7 +12,7 @@ program
     .version('1.1.0')
     .description('Creates a foundation for your NPM package.')
     .arguments('<packageName>')
-    .option('--esm', 'Creates an EcmaScript file in src/.')
+    .option('--esm', 'creates an EcmaScript file in the src directory')
     .action(async (packageName, options) => {
         try {
             // runs npm init -y
@@ -231,7 +231,7 @@ program
 // Based on my testing, it can also update already existing package.json's.
 program
     .command('pkg-config')
-    .description('Adds/customises different fields in your package.json')
+    .description('adds/customises different fields in your package.json')
     .action(async () => {
         try {
             const packageJsonPath = path.join(process.cwd(), 'package.json');
