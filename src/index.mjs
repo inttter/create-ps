@@ -7,6 +7,7 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { execa } from 'execa';
 import ora from 'ora';
+import boxen from 'boxen';
 
 program
     .version('1.1.0')
@@ -237,7 +238,9 @@ program
             const packageJsonPath = path.join(process.cwd(), 'package.json');
             const packageJson = await fs.readJson(packageJsonPath);
 
-            const { repository, keywords, homepage, license, bugsType } = await inquirer.prompt([
+            let bugsURL, bugsType;
+
+            const { repository, keywords, homepage, license, bugsTypeInput } = await inquirer.prompt([
                 {
                     type: 'input',
                     name: 'repository',
@@ -261,41 +264,79 @@ program
                 },
                 {
                     type: 'list',
-                    name: 'bugsType',
+                    name: 'bugsTypeInput',
                     message: chalk.cyan(`Choose the type of way you'd like to specify the ${chalk.magenta('bugs')} field:`),
                     choices: ['URL', 'Email']
                 }
             ]);
 
-            if (repository) packageJson.repository = repository;
-            if (keywords) packageJson.keywords = keywords;
-            if (homepage) packageJson.homepage = homepage;
-            if (license) packageJson.license = license;
+            // im setting the bugs type for later use
+            bugsType = bugsTypeInput;
 
             if (bugsType === 'URL') {
-                const { bugsURL } = await inquirer.prompt([
+                const { bugsURLInput } = await inquirer.prompt([
                     {
                         type: 'input',
-                        name: 'bugsURL',
+                        name: 'bugsURLInput',
                         message: chalk.cyan(`Enter the ${chalk.magenta('URL')} to report bugs to:`)
                     }
                 ]);
-                if (bugsURL) packageJson.bugs = { url: bugsURL };
+                bugsURL = bugsURLInput;
             } else if (bugsType === 'Email') {
-                const { bugsEmail } = await inquirer.prompt([
+                const { bugsEmailInput } = await inquirer.prompt([
                     {
                         type: 'input',
-                        name: 'bugsEmail',
+                        name: 'bugsEmailInput',
                         message: chalk.cyan(`Enter the ${chalk.magenta('email')} to report bugs to:`)
                     }
                 ]);
-                if (bugsEmail) packageJson.bugs = { email: bugsEmail };
+                bugsURL = bugsEmailInput;
             }
 
-            await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
-            console.log();
-            console.log(chalk.green(`Success! Your package.json has been updated successfully.`));
-            console.log();
+            // confirmation message box
+            let confirmationMessage = boxen(chalk.bold('The following will be added to your package.json:\n\n') +
+                `Repository URL: ${repository}\n` +
+                `Keywords: ${keywords.join(', ')}\n` +
+                `Homepage: ${homepage}\n` +
+                `License: ${license}\n` +
+                `Bugs Type: ${bugsType}\n` +
+                `Bugs URL/Email: ${bugsURL}\n`, 
+            { borderStyle: 'round', padding: 1, margin: 1, borderColor: 'cyan', title: 'Confirming Your Configuration', titleAlignment: 'center'});
+
+            console.log(confirmationMessage);
+
+            // prompt that asks the user to confirm
+            const { confirm } = await inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'confirm',
+                    message: 'Would you like to proceed?',
+                    choices: ['Yes', 'No']
+                }
+            ]);
+
+            if (confirm === 'Yes') {
+                // updates package.json if confirmed
+                if (repository) packageJson.repository = repository;
+                if (keywords) packageJson.keywords = keywords;
+                if (homepage) packageJson.homepage = homepage;
+                if (license) packageJson.license = license;
+
+                if (bugsType === 'URL') {
+                    if (bugsURL) packageJson.bugs = { url: bugsURL };
+                } else if (bugsType === 'Email') {
+                    if (bugsURL) packageJson.bugs = { email: bugsURL };
+                }
+
+                await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+                console.log();
+                console.log(chalk.green(`Success! Your package.json has been updated successfully.`));
+                console.log();
+            } else {
+                // if "No"
+                console.log(chalk.yellow('Operation cancelled.'));
+            }
+
         } catch (err) {
             console.error(chalk.red(`Error updating package.json: ${err}`));
         }
