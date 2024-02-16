@@ -1,6 +1,9 @@
 {
   "name": "create-ps",
-  "version": "1.1.0",
+  "version": "1.2.0",
+  "engines": {
+    "node": ">=18"
+  },
   "description": "Creates a foundation for your NPM package.",
   "main": "index.mjs",
   "bin": {
@@ -17,8 +20,7 @@
     "automation",
     "setup",
     "node",
-    "structure",
-    ""
+    "structure"
   ],
   "author": "Inter",
   "license": "MIT",
@@ -37,6 +39,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/inttter/create-ps.git"
+  },
+  "bugs": {
+    "url": "https://ascii-convert.sh/bug-report"
   },
   "type": "module"
 }
