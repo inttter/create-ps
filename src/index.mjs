@@ -223,4 +223,80 @@ program
         }
     }
 
+
+// pkg-config Command
+//
+// This command is similar to the main one, in which a series of prompts appear asking the user to
+// fill in different fields in the package.json. After this, it'll update the fields accordingly.
+// Based on my testing, it can also update already existing package.json's.
+program
+    .command('pkg-config')
+    .description('Adds/customises different fields in your package.json')
+    .action(async () => {
+        try {
+            const packageJsonPath = path.join(process.cwd(), 'package.json');
+            const packageJson = await fs.readJson(packageJsonPath);
+
+            const { repository, keywords, homepage, license, bugsType } = await inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'repository',
+                    message: chalk.cyan(`Enter a ${chalk.magenta('repository URL')}:`)
+                },
+                {
+                    type: 'input',
+                    name: 'keywords',
+                    message: chalk.cyan(`Enter ${chalk.magenta('keywords')} (comma-separated):`),
+                    filter: input => input.split(',').map(keyword => keyword.trim())
+                },
+                {
+                    type: 'input',
+                    name: 'homepage',
+                    message: chalk.cyan(`Enter your ${chalk.magenta('homepage URL')}:`)
+                },
+                {
+                    type: 'input',
+                    name: 'license',
+                    message: chalk.cyan(`Enter the ${chalk.magenta('license')} you wish to use:`)
+                },
+                {
+                    type: 'list',
+                    name: 'bugsType',
+                    message: chalk.cyan(`Choose the type of ${chalk.magenta('bugs')} URL or email:`),
+                    choices: ['URL', 'Email']
+                }
+            ]);
+
+            if (repository) packageJson.repository = repository;
+            if (keywords) packageJson.keywords = keywords;
+            if (homepage) packageJson.homepage = homepage;
+            if (license) packageJson.license = license;
+
+            if (bugsType === 'URL') {
+                const { bugsURL } = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'bugsURL',
+                        message: chalk.cyan(`Enter the ${chalk.magenta('bugs')} URL:`)
+                    }
+                ]);
+                if (bugsURL) packageJson.bugs = { url: bugsURL };
+            } else if (bugsType === 'Email') {
+                const { bugsEmail } = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'bugsEmail',
+                        message: chalk.cyan(`Enter the ${chalk.magenta('bugs')} email:`)
+                    }
+                ]);
+                if (bugsEmail) packageJson.bugs = { email: bugsEmail };
+            }
+
+            await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+            console.log(chalk.green(`Success! Your package.json has been updated successfully.`));
+        } catch (err) {
+            console.error(chalk.red(`Error updating package.json: ${err}`));
+        }
+    });
+
 program.parse(process.argv);
