@@ -11,14 +11,14 @@
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/inttter/create-ps/assets/73017070/a1a0362e-9124-49bc-ac73-922e1e607595" width="500">
-  <img alt="Prompts (Dark Mode)" src="https://github.com/inttter/create-ps/assets/73017070/8941348a-eb01-46e7-ac69-62c3fdc65e6c" width="500">
+  <img alt="Prompts (Light Mode)" src="https://github.com/inttter/create-ps/assets/73017070/8941348a-eb01-46e7-ac69-62c3fdc65e6c" width="500">
 </picture>
 </div>
 
 
 ## Why?
 
-Simple answer? **Saves time.** I don't want to create new files that I know I'll need every time I want to make a new package.
+**Simply put, saves time.** I don't want to repeatedly create new files that I know I'm gonna want to make every time I want to make a new package. Answering some prompts does the trick enough for me to make my project structure faster than manually creating the files and folders.
 
 ## Installation
 
@@ -26,7 +26,7 @@ Simple answer? **Saves time.** I don't want to create new files that I know I'll
 $ npm install -g create-ps
 
 # Node 18 or higher
-# You should install globally to run in any new project.
+# You should install globally to run from any location.
 ```
 
 ## Usage
@@ -45,9 +45,11 @@ replacing ```<packageName>``` with the name of your package.
 
 * Based on your responses to them, the files you picked to create will be created. [^4]
 
-## Demo
+## Commands
 
-https://github.com/inttter/create-ps/assets/73017070/3c764394-f186-4ced-9f9a-3d1dc1b1aec6
+|   Command      |    Description    |     Aliases      | 
+|----------|-----------|---------------------------|
+```cps pkg-config``` | Adds/customises different fields in your ```package.json```. A series of prompts will prompt you to fill in different fields of the package.json, such as license [(see here for correct identifiers)](https://spdx.org/licenses/), repository URL, and more. You can also configure existing ```package.json```. | N/A | 
 
 
 ## License
