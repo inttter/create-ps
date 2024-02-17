@@ -27,7 +27,7 @@ program
             });
 
             // toggle options for files/directories
-            const { includeSrc, includeTest, includeExamples, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense } = await inquirer.prompt([
+            const { includeSrc, includeTest, includeExamples, includeDocs, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense } = await inquirer.prompt([
                 {
                     type: 'confirm',
                     name: 'includeSrc', // src prompt
@@ -44,6 +44,12 @@ program
                     type: 'confirm',
                     name: 'includeExamples', // example prompt
                     message: chalk.cyan(`Would you like to include an ${chalk.magenta('examples')} directory?`),
+                    default: true
+                },
+                {
+                    type: 'confirm',
+                    name: 'includeDocs', // docs prompt
+                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('documentation')} folder?`),
                     default: true
                 },
                 {
@@ -101,7 +107,7 @@ program
                 }
             ]);
 
-            await createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense);
+            await createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense);
 
             // start a git repo (git init)
             if (startGitRepo) {
@@ -116,7 +122,7 @@ program
         }
     });
 
-    async function createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, startGitRepo, includeDependabot, includeWorkflows, includeAssets, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
+    async function createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, startGitRepo, includeDependabot, includeWorkflows, includeAssets, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
         const spinner = ora('Creating package structure...').start();
     
         try {
@@ -158,6 +164,12 @@ program
             if (includeExamples) {
                 const examplesDir = path.join(process.cwd(), 'examples');
                 await fs.ensureDir(examplesDir);
+            }
+
+            // docs
+            if (includeDocs) {
+                const docsDir = path.join(process.cwd(), 'docs');
+                await fs.ensureDir(docsDir);
             }
             
             // dependabot
