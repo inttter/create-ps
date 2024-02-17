@@ -1,13 +1,13 @@
 {
   "name": "create-ps",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "engines": {
     "node": ">=18"
   },
   "description": "Creates a foundation for your NPM package.",
   "main": "index.mjs",
   "bin": {
-    "cps": "./src/index.mjs"
+    "cps": "src/index.mjs"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -25,6 +25,7 @@
   "author": "Inter",
   "license": "MIT",
   "dependencies": {
+    "boxen": "^7.1.1",
     "chalk": "^5.3.0",
     "commander": "^12.0.0",
     "execa": "^8.0.1",
@@ -38,10 +39,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/inttter/create-ps.git"
+    "url": "git+https://github.com/inttter/create-ps.git"
   },
   "bugs": {
-    "url": "https://ascii-convert.sh/bug-report"
+    "url": "https://github.com/inttter/create-ps/issues"
   },
   "type": "module"
 }
