@@ -27,29 +27,35 @@ program
             });
 
             // toggle options for files/directories
-            const { includeSrc, includeTest, includeExamples, includeDocs, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense } = await inquirer.prompt([
+            const { includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense } = await inquirer.prompt([
                 {
                     type: 'confirm',
                     name: 'includeSrc', // src prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('src')} directory?`),
+                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('src')} folder?`),
                     default: true
                 },
                 {
                     type: 'confirm',
                     name: 'includeTest', // test prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('test')} directory?`),
+                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('test')} folder?`),
                     default: true
                 },
                 {
                     type: 'confirm',
                     name: 'includeExamples', // example prompt
-                    message: chalk.cyan(`Would you like to include an ${chalk.magenta('examples')} directory?`),
+                    message: chalk.cyan(`Would you like to include an ${chalk.magenta('examples')} folder?`),
                     default: true
                 },
                 {
                     type: 'confirm',
                     name: 'includeDocs', // docs prompt
                     message: chalk.cyan(`Would you like to include a ${chalk.magenta('documentation')} folder?`),
+                    default: true
+                },
+                {
+                    type: 'confirm',
+                    name: 'includeI18n', // i18n/translation prompt
+                    message: chalk.cyan(`Would you like to include an ${chalk.magenta('i18n/translation')} folder?`),
                     default: true
                 },
                 {
@@ -107,7 +113,7 @@ program
                 }
             ]);
 
-            await createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense);
+            await createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense);
 
             // start a git repo (git init)
             if (startGitRepo) {
@@ -122,7 +128,7 @@ program
         }
     });
 
-    async function createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, startGitRepo, includeDependabot, includeWorkflows, includeAssets, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
+    async function createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeDependabot, includeWorkflows, includeAssets, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
         const spinner = ora('Creating package structure...').start();
     
         try {
@@ -170,6 +176,12 @@ program
             if (includeDocs) {
                 const docsDir = path.join(process.cwd(), 'docs');
                 await fs.ensureDir(docsDir);
+            }
+
+            // i18n/translation
+            if (includeI18n) {
+                const translationDir = path.join(process.cwd(), 'i18n');
+                await fs.ensureDir(translationDir);
             }
             
             // dependabot
