@@ -27,7 +27,7 @@ program
             });
 
             // toggle options for files/directories
-            const { includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense } = await inquirer.prompt([
+            const { includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeWorkflows, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense } = await inquirer.prompt([
                 {
                     type: 'confirm',
                     name: 'includeSrc', // src prompt
@@ -66,14 +66,14 @@ program
                 },
                 {
                     type: 'confirm',
-                    name: 'includeDependabot', // dependabot prompt
-                    message: chalk.cyan(`Would you like to include ${chalk.magenta('Dependabot')}?`),
-                    default: true
+                    name: 'includeWorkflows', // github workflows prompt
+                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('GitHub Workflows')} folder?`)
                 },
                 {
                     type: 'confirm',
-                    name: 'includeWorkflows', // github workflows prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('GitHub Workflows')} folder?`)
+                    name: 'includeDependabot', // dependabot prompt
+                    message: chalk.cyan(`Would you like to include ${chalk.magenta('Dependabot')}?`),
+                    default: true
                 },
                 {
                     type: 'confirm',
@@ -113,7 +113,7 @@ program
                 }
             ]);
 
-            await createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeDependabot, includeWorkflows, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense);
+            await createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeWorkflows, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense);
 
             // start a git repo (git init)
             if (startGitRepo) {
@@ -128,7 +128,7 @@ program
         }
     });
 
-    async function createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeDependabot, includeWorkflows, includeAssets, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
+    async function createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeWorkflows, includeDependabot, includeAssets, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
         const spinner = ora('Creating package structure...').start();
     
         try {
@@ -183,23 +183,23 @@ program
                 const translationDir = path.join(process.cwd(), 'i18n');
                 await fs.ensureDir(translationDir);
             }
-            
-            // dependabot
-            if (includeDependabot) {
-                const workflowsFolder = path.join(process.cwd(), '.github');
-                await fs.ensureDir(workflowsFolder);
-    
-                const dependabot = 'dependabot.yml';
-                const dependabotFile = path.join(workflowsFolder, dependabot);
-                // the \n's below are to properly format the file indentations correctly
-                // fun fact: took me a lot of trial and error to do this one
-                await fs.writeFile(dependabotFile, 'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    directory: "/"\n    schedule:\n     interval: "daily"', 'utf-8');
-            }
     
             // workflows folder
             if (includeWorkflows) {
                 const workflowsFolder = path.join(process.cwd(), '.github', 'workflows');
                 await fs.ensureDir(workflowsFolder);
+            }
+
+            // dependabot
+            if (includeDependabot) {
+                const workflowsFolder = path.join(process.cwd(), '.github');
+                await fs.ensureDir(workflowsFolder);
+                
+                 const dependabot = 'dependabot.yml';
+                 const dependabotFile = path.join(workflowsFolder, dependabot);
+                // the \n's below are to properly format the file indentations correctly
+                // fun fact: took me a lot of trial and error to do this one
+                await fs.writeFile(dependabotFile, 'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    directory: "/"\n    schedule:\n     interval: "daily"', 'utf-8');
             }
     
             // .gitignore
