@@ -264,7 +264,12 @@ program
 
             let bugsURL, bugsType;
 
-            const { repository, keywords, homepage, license, bugsTypeInput } = await inquirer.prompt([
+            const { author, repository, keywords, homepage, license, bugsTypeInput } = await inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'author',
+                    message: chalk.cyan(`Enter the ${chalk.magenta('author')} of this package:`)
+                },
                 {
                     type: 'input',
                     name: 'repository',
@@ -319,13 +324,14 @@ program
 
             // confirmation message box
             let confirmationMessage = boxen(chalk.bold('The following will be added to your package.json:\n\n') +
+                `Author: ${author}\n` +
                 `Repository URL: ${repository}\n` +
                 `Keywords: ${keywords.join(', ')}\n` +
                 `Homepage: ${homepage}\n` +
                 `License: ${license}\n` +
                 `Bugs Type: ${bugsType}\n` +
                 `Bugs URL/Email: ${bugsURL}\n`, 
-            { borderStyle: 'round', padding: 1, margin: 1, borderColor: 'cyan', title: 'Confirming Your Configuration', titleAlignment: 'center'});
+            { borderStyle: 'round', padding: 1, margin: 1, borderColor: 'cyan', title: 'Just A Heads Up!', titleAlignment: 'center'});
 
             console.log(confirmationMessage);
 
@@ -341,6 +347,7 @@ program
 
             if (confirm === 'Yes') {
                 // updates package.json if confirmed
+                if (author) packageJson.author = author;
                 if (repository) packageJson.repository = repository;
                 if (keywords) packageJson.keywords = keywords;
                 if (homepage) packageJson.homepage = homepage;
