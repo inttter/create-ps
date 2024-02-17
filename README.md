@@ -1,6 +1,6 @@
 # create-ps
 
-**create-ps** (kriˈeɪt-ps) creates a foundation for your NPM package.
+**create-ps** creates a foundation for your NPM package, saving you time from creating new files and folders.
 
 [![NPM Weekly Downloads](https://img.shields.io/npm/dw/create-ps.svg?style=flat&colorA=black&colorB=blue)](https://npmjs.org/package/create-ps "Weekly downloads from NPM.")
 [![NPM version](https://img.shields.io/npm/v/create-ps.svg?style=flat&colorA=black)](https://www.npmjs.com/package/create-ps "The latest NPM version.")
@@ -10,8 +10,8 @@
 
 <div align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/inttter/create-ps/assets/73017070/a1a0362e-9124-49bc-ac73-922e1e607595" width="500">
-  <img alt="Prompts (Light Mode)" src="https://github.com/inttter/create-ps/assets/73017070/8941348a-eb01-46e7-ac69-62c3fdc65e6c" width="500">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/inttter/create-ps/assets/73017070/1c038b86-e3d6-4341-afab-f69398d31e60" width="500">
+  <img alt="Prompts (Light Mode)" src="https://github.com/inttter/create-ps/assets/73017070/2b31dc13-83c5-4129-93ad-e2a8cedfc1a4" width="500">
 </picture>
 </div>
 
@@ -41,7 +41,7 @@ replacing ```<packageName>``` with the name of your package.
 
 * This will first run  ```npm init -y``` to create a  ```package.json```. [^2]
 
-* You'll be provided a set of prompts to answer ```Yes``` / ```No``` to. [^3]
+* You'll be provided a list to toggle what you'd like to include in your project structure. [^3]
 
 * Based on your responses to them, the files you picked to create will be created. [^4]
 
@@ -61,6 +61,6 @@ Licensed under the MIT License. See ```LICENSE```, or click [here](https://githu
 
 [^2]: You'll be notified of this again once you finish answering the prompts.
 
-[^3]: By default, the value is set to ```Yes```, so if you do not enter anything, ```Yes``` will be assumed as the answer.
+[^3]: ```(*)``` means Yes,  ```( )``` means No. By default, all options are selected, and keybinds are given in the prompt.
 
 [^4]: **create-ps** does not install dependencies, you must install them yourself based on your package's needs. ```package-lock.json``` will be automatically created when you install any dependencies, and thus, is why it's not created by create-ps.
