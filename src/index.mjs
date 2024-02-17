@@ -10,7 +10,7 @@ import ora from 'ora';
 import boxen from 'boxen';
 
 program
-    .version('1.1.0')
+    .version('2.0.0')
     .description('Creates a foundation for your NPM package.')
     .arguments('<packageName>')
     .option('--esm', 'creates an EcmaScript file in the src directory')
@@ -27,96 +27,35 @@ program
             });
 
             // toggle options for files/directories
-            const { includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeWorkflows, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense } = await inquirer.prompt([
+            const { toggles } = await inquirer.prompt([
                 {
-                    type: 'confirm',
-                    name: 'includeSrc', // src prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('src')} folder?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeTest', // test prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('test')} folder?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeExamples', // example prompt
-                    message: chalk.cyan(`Would you like to include an ${chalk.magenta('examples')} folder?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeDocs', // docs prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('documentation')} folder?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeI18n', // i18n/translation prompt
-                    message: chalk.cyan(`Would you like to include an ${chalk.magenta('i18n/translation')} folder?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'startGitRepo', // git init prompt
-                    message: chalk.cyan(`Would you like to initialise a local ${chalk.magenta('Git')} repository?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeWorkflows', // github workflows prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('GitHub Workflows')} folder?`)
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeDependabot', // dependabot prompt
-                    message: chalk.cyan(`Would you like to include ${chalk.magenta('Dependabot')}?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeGitIgnore', // .gitignore prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('.gitignore')} file? `),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeReadme', // readme prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('README')} file?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeContributing', // contributing prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('contributing guidelines')} file?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeChangelog', // changelog prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('changelog')} file?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeAssets', // assets prompt
-                    message: chalk.cyan(`Would you like to include an ${chalk.magenta('assets')} folder?`),
-                    default: true
-                },
-                {
-                    type: 'confirm',
-                    name: 'includeLicense', // license prompt
-                    message: chalk.cyan(`Would you like to include a ${chalk.magenta('LICENSE')} file?`),
-                    default: true
+                    type: 'checkbox',
+                    name: 'toggles',
+                    message: chalk.cyan('Select what you\'d like to include:'),
+                    choices: [
+                        { name: 'src/' },
+                        { name: 'test/' },
+                        { name: 'examples/' },
+                        { name: 'docs/' },
+                        { name: 'assets/' },
+                        { name: 'i18n/' },
+                        { name: 'git init' },
+                        { name: '.github/workflows' },
+                        { name: '.github/dependabot.yml' },
+                        { name: '.gitignore' },
+                        { name: 'README.md' },
+                        { name: 'CONTRIBUTING.md' },
+                        { name: 'CHANGELOG.md' },
+                        { name: 'LICENSE' }
+                    ],
+                    default: ['src/', 'test/', 'examples/', 'docs/', 'i18n/', 'assets/', 'git init', '.github/workflows', '.github/dependabot.yml', '.gitignore', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE']
                 }
             ]);
 
-            await createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeWorkflows, includeDependabot, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeAssets, includeLicense);
+            await createPkgStructure(packageName, description, options, toggles);
 
             // start a git repo (git init)
-            if (startGitRepo) {
+            if (toggles.includes('git init')) {
                 try {
                     await execa('git', ['init']);
                 } catch (err) {
@@ -128,125 +67,107 @@ program
         }
     });
 
-    async function createPkgStructure(packageName, description, options, includeSrc, includeTest, includeExamples, includeDocs, includeI18n, startGitRepo, includeWorkflows, includeDependabot, includeAssets, includeGitIgnore, includeReadme, includeContributing, includeChangelog, includeLicense) {
-        const spinner = ora('Creating package structure...').start();
-    
-        try {
-            // src
-            if (includeSrc) {
-                const srcDir = path.join(process.cwd(), 'src');
-                await fs.ensureDir(srcDir);
+async function createPkgStructure(packageName, description, options, toggles) {
+    const spinner = ora('Creating package structure...').start();
 
-                // if --esm is specified, changes the file name to index.mjs, else, keep as index.js
-                let indexFileName = 'index.js';
-                if (process.argv.includes('--esm') || process.argv.includes('--ecmascript')) {
-                    indexFileName = 'index.mjs';
-                }
+    try {
+        // Loop through each toggle answer and create files/directories accordingly
+        for (const toggle of toggles) {
+            switch (toggle) {
+                case 'src/':
+                    const srcDir = path.join(process.cwd(), 'src');
+                    await fs.ensureDir(srcDir);
 
-                const indexFile = path.join(srcDir, indexFileName);
-                await fs.writeFile(indexFile, '', 'utf8');
+                    // if --esm is specified, changes the file name to index.mjs, else, keep as index.js
+                    let indexFileName = 'index.js';
+                    if (process.argv.includes('--esm') || process.argv.includes('--ecmascript')) {
+                        indexFileName = 'index.mjs';
+                    }
 
-                // updates the main field in package.json
-                const packageJsonPath = path.join(process.cwd(), 'package.json');
-                const packageJson = await fs.readJson(packageJsonPath);
+                    const indexFile = path.join(srcDir, indexFileName);
+                    await fs.writeFile(indexFile, '', 'utf8');
 
-                // this determines the correct main file based on if --esm is specified
-                // if the file/folder name or location gets changed, the user will have to
-                // manually update it in the package.json themselves
-                const mainFile = process.argv.includes('--esm') || process.argv.includes('--ecmascript') ? './src/index.mjs' : './src/index.js';
+                    // updates the main field in package.json
+                    const packageJsonPath = path.join(process.cwd(), 'package.json');
+                    const packageJson = await fs.readJson(packageJsonPath);
 
-                packageJson.main = mainFile;
+                    // this determines the correct main file based on if --esm is specified
+                    // if the file/folder name or location gets changed, the user will have to
+                    // manually update it in the package.json themselves
+                    const mainFile = process.argv.includes('--esm') || process.argv.includes('--ecmascript') ? './src/index.mjs' : './src/index.js';
 
-                await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 }); // writes to package.json
-            }
-    
-            // test
-            if (includeTest) {
-                const testDir = path.join(process.cwd(), 'test');
-                await fs.ensureDir(testDir);
-            }
+                    packageJson.main = mainFile;
 
-            // examples (ie. examples/example.js shows off an example of the package)
-            if (includeExamples) {
-                const examplesDir = path.join(process.cwd(), 'examples');
-                await fs.ensureDir(examplesDir);
+                    await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 }); // writes to package.json
+                    break;
+                case 'test/':
+                    const testDir = path.join(process.cwd(), 'test');
+                    await fs.ensureDir(testDir);
+                    break;
+                case 'examples/':
+                    const examplesDir = path.join(process.cwd(), 'examples');
+                    await fs.ensureDir(examplesDir);
+                    break;
+                case 'docs/':
+                    const docsDir = path.join(process.cwd(), 'docs');
+                    await fs.ensureDir(docsDir);
+                    break;
+                case 'i18n/':
+                    const translationDir = path.join(process.cwd(), 'i18n');
+                    await fs.ensureDir(translationDir);
+                    break;
+                case 'assets/':
+                    const assetsDir = path.join(process.cwd(), 'assets');
+                    await fs.ensureDir(assetsDir);
+                    break;
+                case '.github/workflows':
+                    const workflowsFolder = path.join(process.cwd(), '.github', 'workflows');
+                    await fs.ensureDir(workflowsFolder);
+                    break;
+                case '.github/dependabot.yml':
+                    const dependabotFolder = path.join(process.cwd(), '.github');
+                    await fs.ensureDir(dependabotFolder);
+                    
+                    const dependabot = 'dependabot.yml';
+                    const dependabotFile = path.join(dependabotFolder, dependabot);
+                    // the \n's below are to properly format the file indentations correctly
+                    // fun fact: took me a lot of trial and error to do this one
+                    await fs.writeFile(dependabotFile, 'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    directory: "/"\n    schedule:\n     interval: "daily"', 'utf-8');
+                    break;
+                case '.gitignore':
+                    const gitignoreContent = `node_modules/`;
+                    const gitignoreFile = path.join(process.cwd(), '.gitignore');
+                    await fs.writeFile(gitignoreFile, gitignoreContent, 'utf8');
+                    break;
+                case 'README.md':
+                    const readmeContent = `# ${packageName}\n\n${description}\n\n# Installation\n\n\`\`\`bash\nnpm install ${packageName}\n\`\`\`\n\n## Usage\n\n\`\`\`javascript\nconst ${packageName} = require('${packageName}')\n\n// (code goes here)\n\`\`\``;
+                    const readmeFile = path.join(process.cwd(), 'README.md');
+                    await fs.writeFile(readmeFile, readmeContent, 'utf8');
+                    break;
+                case 'CONTRIBUTING.md':
+                    const contributingFile = path.join(process.cwd(), 'CONTRIBUTING.md');
+                    await fs.writeFile(contributingFile, '', 'utf8');
+                    break;
+                case 'CHANGELOG.md':
+                    const changelogContent = `# Changelog\n\n# v1.0.0`;
+                    const changelogFile = path.join(process.cwd(),  'CHANGELOG.md');
+                    await fs.writeFile(changelogFile, changelogContent , 'utf8');
+                    break;
+                case 'LICENSE':
+                    const licenseFilePath = path.join(process.cwd(), 'LICENSE');
+                    await fs.writeFile(licenseFilePath, '', 'utf8');
+                    break;
+                default:
+                    break;
             }
-
-            // docs
-            if (includeDocs) {
-                const docsDir = path.join(process.cwd(), 'docs');
-                await fs.ensureDir(docsDir);
-            }
-
-            // i18n/translation
-            if (includeI18n) {
-                const translationDir = path.join(process.cwd(), 'i18n');
-                await fs.ensureDir(translationDir);
-            }
-    
-            // workflows folder
-            if (includeWorkflows) {
-                const workflowsFolder = path.join(process.cwd(), '.github', 'workflows');
-                await fs.ensureDir(workflowsFolder);
-            }
-
-            // dependabot
-            if (includeDependabot) {
-                const workflowsFolder = path.join(process.cwd(), '.github');
-                await fs.ensureDir(workflowsFolder);
-                
-                 const dependabot = 'dependabot.yml';
-                 const dependabotFile = path.join(workflowsFolder, dependabot);
-                // the \n's below are to properly format the file indentations correctly
-                // fun fact: took me a lot of trial and error to do this one
-                await fs.writeFile(dependabotFile, 'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    directory: "/"\n    schedule:\n     interval: "daily"', 'utf-8');
-            }
-    
-            // .gitignore
-            if (includeGitIgnore) {
-                const gitignoreContent = `node_modules/`;
-                const gitignoreFile = path.join(process.cwd(), '.gitignore');
-                await fs.writeFile(gitignoreFile, gitignoreContent, 'utf8');
-            }
-    
-            // template README.md
-            if (includeReadme) {
-                const readmeContent = `# ${packageName}\n\n${description}\n\n# Installation\n\n\`\`\`bash\nnpm install ${packageName}\n\`\`\`\n\n## Usage\n\n\`\`\`javascript\nconst ${packageName} = require('${packageName}')\n\n// (code goes here)\n\`\`\``;
-                const readmeFile = path.join(process.cwd(), 'README.md');
-                await fs.writeFile(readmeFile, readmeContent, 'utf8');
-            }
-    
-            // CONTRIBUTING.md
-            if (includeContributing) {
-                const contributingFile = path.join(process.cwd(), 'CONTRIBUTING.md');
-                await fs.writeFile(contributingFile, '', 'utf8');
-            }
-    
-            // CHANGELOG.md
-            if (includeChangelog) {
-                const changelogContent = `# Changelog\n\n# v1.0.0`;
-                const changelogFile = path.join(process.cwd(),  'CHANGELOG.md');
-                await fs.writeFile(changelogFile, changelogContent , 'utf8');
-            }
-
-            // assets (ie. images for documentation, example screenshots, logo's, etc...)
-            if (includeAssets) {
-                const assetsDir = path.join(process.cwd(), 'assets');
-                await fs.ensureDir(assetsDir);
-            }
-    
-            // LICENSE
-            if (includeLicense) {
-                const licenseFilePath = path.join(process.cwd(), 'LICENSE');
-                await fs.writeFile(licenseFilePath, '', 'utf8');
-            }
-    
-            spinner.succeed(chalk.green(`Success! The package structure for '${packageName}' has been created.`));
-            console.log(chalk.blue(`NOTE: ${chalk.magenta('npm init -y')} was ran to create your ${chalk.magenta('package.json')} file.`))
-        } catch (err) {
-            spinner.fail(chalk.red(`Error creating package structure: ${err}`));
         }
+
+        spinner.succeed(chalk.green(`Success! The package structure for '${packageName}' has been created.`));
+        console.log(chalk.blue(`NOTE: ${chalk.magenta('npm init -y')} was ran to create your ${chalk.magenta('package.json')} file.`))
+    } catch (err) {
+        spinner.fail(chalk.red(`Error creating package structure: ${err}`));
     }
+}
 
 
 // pkg-config Command
