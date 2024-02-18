@@ -9,12 +9,24 @@ import { execa } from 'execa';
 import ora from 'ora';
 import boxen from 'boxen';
 
+const asciiArt = chalk.yellow(`
+                      _                        
+                     | |                       
+   ___ _ __ ___  __ _| |_ ___ ______ _ __  ___ 
+  / __| '__/ _ \\/ _\` | __/ _ \\______| '_ \\/ __|
+ | (__| | |  __/ (_| | ||  __/      | |_) \\__ \\
+  \\___|_|  \\___|\\__,_|\\__\\___|      | .__/|___/
+                                    | |        
+                                    |_|        
+`);
+
 program
     .version('2.0.0')
     .description('Creates a foundation for your NPM package.')
     .arguments('<packageName>')
     .option('--esm', 'creates an EcmaScript file in the src directory')
     .action(async (packageName, options) => {
+        console.log(asciiArt);
         try {
             // runs npm init -y
             await execa('npm', ['init', '-y']);
