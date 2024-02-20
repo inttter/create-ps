@@ -9,10 +9,7 @@
 
 
 <div align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/inttter/create-ps/assets/73017070/1c038b86-e3d6-4341-afab-f69398d31e60" width="500">
-  <img alt="Prompts (Light Mode)" src="https://github.com/inttter/create-ps/assets/73017070/2b31dc13-83c5-4129-93ad-e2a8cedfc1a4" width="500">
-</picture>
+<img src="https://github.com/inttter/create-ps/assets/73017070/c13136f3-86b3-4841-aba7-dcfd22491c6c" width="450">
 </div>
 
 
