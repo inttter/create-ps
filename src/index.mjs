@@ -197,7 +197,7 @@ program
 
             let bugsURL, bugsType;
 
-            const { author, repository, keywords, homepage, license, bugsTypeInput } = await inquirer.prompt([
+            const { author, repository, keywords, homepage, funding, license, bugsTypeInput } = await inquirer.prompt([
                 {
                     type: 'input',
                     name: 'author',
@@ -211,13 +211,18 @@ program
                 {
                     type: 'input',
                     name: 'keywords',
-                    message: chalk.cyan(`Enter ${chalk.magenta('keywords')} (comma-separated):`),
+                    message: chalk.cyan(`Enter some ${chalk.magenta('keywords')} (comma-separated):`),
                     filter: input => input.split(',').map(keyword => keyword.trim())
                 },
                 {
                     type: 'input',
                     name: 'homepage',
-                    message: chalk.cyan(`Enter your ${chalk.magenta('homepage URL')}:`)
+                    message: chalk.cyan(`Enter a ${chalk.magenta('homepage URL')}:`)
+                },
+                {
+                    type: 'input',
+                    name: 'funding',
+                    message: chalk.cyan(`Enter a ${chalk.magenta('funding URL')}:`)
                 },
                 {
                     type: 'input',
@@ -261,6 +266,7 @@ program
                 `Repository URL: ${repository}\n` +
                 `Keywords: ${keywords.join(', ')}\n` +
                 `Homepage: ${homepage}\n` +
+                `Funding: ${funding}\n` +
                 `License: ${license}\n` +
                 `Bugs Type: ${bugsType}\n` +
                 `Bugs URL/Email: ${bugsURL}\n`, 
@@ -284,6 +290,7 @@ program
                 if (repository) packageJson.repository = repository;
                 if (keywords) packageJson.keywords = keywords;
                 if (homepage) packageJson.homepage = homepage;
+                if (funding) packageJson.funding = funding;
                 if (license) packageJson.license = license;
 
                 if (bugsType === 'URL') {
