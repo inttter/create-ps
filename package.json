@@ -4,7 +4,7 @@
   "engines": {
     "node": ">=18"
   },
-  "description": "Creates a foundation for your NPM package.",
+  "description": "Creates the foundations for an NPM package.",
   "main": "index.mjs",
   "bin": {
     "cps": "src/index.mjs"
