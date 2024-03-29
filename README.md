@@ -29,11 +29,11 @@ $ npm install -g create-ps
 ## Usage
 
 > [!TIP]
-> To create a .mjs (ESM/EcmaScript) file, run the command with the **```--esm```** flag.
+> To create a .mjs (ESM/EcmaScript) file and use ```import``` statements, run the command with the **```--esm```** flag.
 
 * Create a folder where you want to store your package. For example,  ```C:/Users/User/Projects/package-name```. [^1]
 
-* Run ```cps <packageName>```,
+* Run ```cps <packageName>``` in the working directory of the package folder,
 replacing ```<packageName>``` with the name of your package.
 
 * This will first run  ```npm init -y``` to create a  ```package.json```. [^2]
@@ -60,4 +60,4 @@ Licensed under the MIT License. See ```LICENSE```, or click [here](https://githu
 
 [^3]: ```(*)``` means Yes,  ```( )``` means No. By default, all options are selected, and keybinds are given in the prompt.
 
-[^4]: **create-ps** does not install dependencies, you must install them yourself based on your package's needs. ```package-lock.json``` will be automatically created when you install any dependencies, and thus, is why it's not created by create-ps.
+[^4]: **create-ps** does not install dependencies, you must install them yourself based on your package's needs. ```package-lock.json``` will be automatically created when you install any dependencies.
