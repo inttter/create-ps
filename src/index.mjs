@@ -155,7 +155,7 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     await fs.writeFile(gitignoreFile, gitignoreContent, 'utf8');
                     break;
                 case 'README.md':
-                    let importStatement = `const { ${packageName} } = import('${packageName}');`;
+                    let importStatement = `const ${packageName} = require("${packageName}");`;
                     if (options.esm) {
                         importStatement = `import { ${packageName} } from '${packageName}';`;
                     }
