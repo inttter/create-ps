@@ -8,6 +8,9 @@ import chalk from 'chalk';
 import { execa } from 'execa';
 import ora from 'ora';
 import boxen from 'boxen';
+import axios from 'axios';
+
+const baseURL = 'https://api.github.com/licenses';
 
 const asciiArt = chalk.yellow(`
                       _                        
@@ -166,8 +169,11 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     await fs.writeFile(changelogFile, changelogContent , 'utf8');
                     break;
                 case 'LICENSE':
+                    const licenseResponse = await axios.get(`${baseURL}/mit`);
+                    const licenseText = licenseResponse.data.body;
                     const licenseFilePath = path.join(process.cwd(), 'LICENSE');
-                    await fs.writeFile(licenseFilePath, '', 'utf8');
+                    await fs.writeFile(licenseFilePath, licenseText, 'utf8');
+                    console.log(chalk.cyan('\n\nBy default, the MIT License was added. If you\'d like, you can change this manually.\n'));
                     break;
                 default:
                     break;
@@ -180,7 +186,6 @@ async function createPkgStructure(packageName, description, options, toggles) {
         spinner.fail(chalk.red(`Error creating package structure: ${err}`));
     }
 }
-
 
 // pkg-config Command
 //
