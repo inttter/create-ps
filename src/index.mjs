@@ -138,6 +138,10 @@ async function createPkgStructure(packageName, description, options, toggles) {
                 case '.github/workflows':
                     const workflowsFolder = path.join(process.cwd(), '.github', 'workflows');
                     await fs.ensureDir(workflowsFolder);
+
+                    const workflow = 'workflow.yml';
+                    const workflowFile = path.join(workflowsFolder, workflow);
+                    await fs.writeFile(workflowFile, '# You can include any type of workflow here,\n# for example, CI/CD, publishing, making issues stale, and more.\n\n# See the GitHub Workflow docs here: https://docs.github.com/en/actions/using-workflows.')
                     break;
                 case '.github/dependabot.yml':
                     const dependabotFolder = path.join(process.cwd(), '.github');
@@ -146,7 +150,6 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     const dependabot = 'dependabot.yml';
                     const dependabotFile = path.join(dependabotFolder, dependabot);
                     // the \n's below are to properly format the file indentations correctly
-                    // fun fact: took me a lot of trial and error to do this one
                     await fs.writeFile(dependabotFile, 'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    directory: "/"\n    schedule:\n     interval: "daily"', 'utf-8');
                     break;
                 case '.gitignore':
