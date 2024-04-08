@@ -41,6 +41,12 @@ program
                 message: chalk.cyan(`Enter a ${chalk.magenta('short description')} of the package:`)
             });
 
+            // update package.json with the provided description
+            const packageJsonPath = path.join(process.cwd(), 'package.json');
+            const packageJson = await fs.readJson(packageJsonPath);
+            packageJson.description = description;
+            await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+
             // toggle options for files/directories
             const { toggles } = await inquirer.prompt([
                 {
