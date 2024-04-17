@@ -9,7 +9,7 @@
 
 
 <div align="center">
-<img src="https://github.com/inttter/create-ps/assets/73017070/c13136f3-86b3-4841-aba7-dcfd22491c6c" width="450">
+<img src="https://github.com/inttter/create-ps/assets/73017070/e4d12625-cf9a-4c63-9c90-472141ca3f54" width="450">
 </div>
 
 
@@ -58,6 +58,6 @@ Licensed under the MIT License. See ```LICENSE```, or click [here](https://githu
 
 [^2]: You'll be notified of this again once you finish answering the prompts.
 
-[^3]: ```(*)``` means Yes,  ```( )``` means No. By default, all options are selected, and keybinds are given in the prompt.
+[^3]: ```(*)``` means Yes,  ```( )``` means No. [On Windows, this will be ```◉``` and ```◯``` respectively](https://github.com/SBoudrias/Inquirer.js/releases/tag/inquirer%409.2.18).  By default, all options are selected, and keybinds are given in the prompt.
 
 [^4]: **create-ps** does not install dependencies, you must install them yourself based on your package's needs. ```package-lock.json``` will be automatically created when you install any dependencies.
