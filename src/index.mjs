@@ -33,6 +33,7 @@ program
         try {
             // runs npm init -y
             await execa('npm', ['init', '-y']);
+            console.log(chalk.green(`\n✔ Ran ${chalk.magenta('npm init -y')} successfully!\n`));
 
             // description prompt
             const { description } = await inquirer.prompt({
@@ -207,7 +208,6 @@ async function createPkgStructure(packageName, description, options, toggles) {
             }
 
         spinner.succeed(chalk.green(`Success! The package structure for '${packageName}' has been created.`));
-        console.log(chalk.blue(`NOTE: ${chalk.magenta('npm init -y')} was ran to create your ${chalk.magenta('package.json')} file.`))
     } catch (err) {
         spinner.fail(chalk.red(`Error creating package structure: ${err}`));
     }
