@@ -328,9 +328,7 @@ program
                 }
 
                 await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
-                console.log();
-                console.log(chalk.green(`Success! Your package.json has been updated successfully.`));
-                console.log();
+                console.log(chalk.green(`\nSuccess! Your package.json has been updated successfully.\n`));
             } else {
                 // if "No"
                 console.log(chalk.yellow('Operation cancelled.'));
