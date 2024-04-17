@@ -61,7 +61,6 @@ program
                         { name: 'docs/' },
                         { name: 'assets/' },
                         { name: 'i18n/' },
-                        { name: 'git init' },
                         { name: '.github/workflows' },
                         { name: '.github/dependabot.yml' },
                         { name: '.gitignore' },
@@ -70,19 +69,17 @@ program
                         { name: 'CHANGELOG.md' },
                         { name: 'LICENSE' }
                     ],
-                    default: ['src/', 'test/', 'examples/', 'docs/', 'i18n/', 'assets/', 'git init', '.github/workflows', '.github/dependabot.yml', '.gitignore', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE']
+                    default: ['src/', 'test/', 'examples/', 'docs/', 'i18n/', 'assets/', '.github/workflows', '.github/dependabot.yml', '.gitignore', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE']
                 }
             ]);
 
             await createPkgStructure(packageName, description, options, toggles);
 
-            // start a git repo (git init)
-            if (toggles.includes('git init')) {
-                try {
-                    await execa('git', ['init']);
-                } catch (err) {
-                    console.error(chalk.red(`Error initializing Git repository: ${err}`));
-                }
+            // start a git repo by default by running 'git init'
+            try {
+                await execa('git', ['init']);
+            } catch (err) {
+                console.error(chalk.red(`Error initializing Git repository: ${err}`));
             }
         } catch (err) {
             console.error(`Error initializing package: ${err}`);
