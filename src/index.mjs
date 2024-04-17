@@ -182,16 +182,29 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     await fs.writeFile(changelogFile, changelogContent , 'utf8');
                     break;
                 case 'LICENSE':
-                    const licenseResponse = await axios.get(`${baseURL}/mit`);
-                    const licenseText = licenseResponse.data.body;
-                    const licenseFilePath = path.join(process.cwd(), 'LICENSE');
-                    await fs.writeFile(licenseFilePath, licenseText, 'utf8');
-                    console.log(chalk.cyan('\n\nBy default, the MIT License was added. If you\'d like, you can change this manually.\n'));
+                    // fetch licenses from the github api
+                    const licensesResponse = await axios.get(`${baseURL}`);
+                    const licenses = licensesResponse.data.map(license => license.key);
+                    
+                    // prompt the user to pick a license
+                    const { selectedLicense } = await inquirer.prompt({
+                        type: 'list',
+                        name: 'selectedLicense',
+                        message: chalk.cyan(`\nSelect a license:`),
+                        choices: licenses
+                    });
+                    
+                    const selectedLicenseResponse = await axios.get(`${baseURL}/${selectedLicense}`);
+                    const selectedLicenseText = selectedLicenseResponse.data.body;
+                    
+                    // write the selected license text to the LICENSE file
+                    const selectedLicenseFilePath = path.join(process.cwd(), 'LICENSE');
+                    await fs.writeFile(selectedLicenseFilePath, selectedLicenseText, 'utf8');
                     break;
                 default:
                     break;
+                }
             }
-        }
 
         spinner.succeed(chalk.green(`Success! The package structure for '${packageName}' has been created.`));
         console.log(chalk.blue(`NOTE: ${chalk.magenta('npm init -y')} was ran to create your ${chalk.magenta('package.json')} file.`))
