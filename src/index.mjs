@@ -242,11 +242,6 @@ async function createPkgStructure(packageName, description, options, toggles) {
     }
 }
 
-// pkg-config Command
-//
-// This command is similar to the main one, in which a series of prompts appear asking the user to
-// fill in different fields in the package.json. After this, it'll update the fields accordingly.
-// Based on my testing, it can also update already existing package.json's.
 program
     .command('pkg-config')
     .description('adds/customises different fields in your package.json')
@@ -255,116 +250,85 @@ program
             const packageJsonPath = path.join(process.cwd(), 'package.json');
             const packageJson = await fs.readJson(packageJsonPath);
 
-            let bugsURL, bugsType;
-
-            const { author, repository, keywords, homepage, funding, license, bugsTypeInput } = await inquirer.prompt([
+            const toggles = await inquirer.prompt([
                 {
+                    type: 'checkbox',
+                    name: 'toggles',
+                    message: chalk.cyan('Select what you\'d like to include:'),
+                    choices: [
+                        { name: 'Author', checked: !!packageJson.author },
+                        { name: 'Repository', checked: !!packageJson.repository },
+                        { name: 'Keywords', checked: !!packageJson.keywords },
+                        { name: 'Homepage', checked: !!packageJson.homepage },
+                        { name: 'Funding', checked: !!packageJson.funding },
+                        { name: 'License', checked: !!packageJson.license },
+                    ]
+                }
+            ]);
+
+            const prompts = [];
+
+            if (toggles.toggles.includes('Author')) {
+                prompts.push({
                     type: 'input',
                     name: 'author',
-                    message: chalk.cyan(`Enter the ${chalk.magenta('author')} of this package:`)
-                },
-                {
+                    message: chalk.cyan(`Enter the ${chalk.magenta('author')} of this package:`),
+                    default: packageJson.author || ''
+                });
+            }
+
+            if (toggles.toggles.includes('Repository')) {
+                prompts.push({
                     type: 'input',
                     name: 'repository',
-                    message: chalk.cyan(`Enter a ${chalk.magenta('repository URL')}:`)
-                },
-                {
+                    message: chalk.cyan(`Enter a ${chalk.magenta('repository URL')}:`),
+                    default: packageJson.repository || ''
+                });
+            }
+
+            if (toggles.toggles.includes('Keywords')) {
+                prompts.push({
                     type: 'input',
                     name: 'keywords',
                     message: chalk.cyan(`Enter some ${chalk.magenta('keywords')} (comma-separated):`),
-                    filter: input => input.split(',').map(keyword => keyword.trim())
-                },
-                {
+                    filter: input => input.split(',').map(keyword => keyword.trim()),
+                    default: packageJson.keywords ? packageJson.keywords.join(', ') : ''
+                });
+            }
+
+            if (toggles.toggles.includes('Homepage')) {
+                prompts.push({
                     type: 'input',
                     name: 'homepage',
-                    message: chalk.cyan(`Enter a ${chalk.magenta('homepage URL')}:`)
-                },
-                {
+                    message: chalk.cyan(`Enter a ${chalk.magenta('homepage URL')}:`),
+                    default: packageJson.homepage || ''
+                });
+            }
+
+            if (toggles.toggles.includes('Funding')) {
+                prompts.push({
                     type: 'input',
                     name: 'funding',
-                    message: chalk.cyan(`Enter a ${chalk.magenta('funding URL')}:`)
-                },
-                {
+                    message: chalk.cyan(`Enter a ${chalk.magenta('funding URL')}:`),
+                    default: packageJson.funding || ''
+                });
+            }
+
+            if (toggles.toggles.includes('License')) {
+                prompts.push({
                     type: 'input',
                     name: 'license',
-                    message: chalk.cyan(`Enter the ${chalk.magenta('license')} you wish to use:`)
-                },
-                {
-                    type: 'list',
-                    name: 'bugsTypeInput',
-                    message: chalk.cyan(`Choose the type of way you'd like to specify the ${chalk.magenta('bugs')} field:`),
-                    choices: ['URL', 'Email']
-                }
-            ]);
-
-            // im setting the bugs type for later use
-            bugsType = bugsTypeInput;
-
-            if (bugsType === 'URL') {
-                const { bugsURLInput } = await inquirer.prompt([
-                    {
-                        type: 'input',
-                        name: 'bugsURLInput',
-                        message: chalk.cyan(`Enter the ${chalk.magenta('URL')} to report bugs to:`)
-                    }
-                ]);
-                bugsURL = bugsURLInput;
-            } else if (bugsType === 'Email') {
-                const { bugsEmailInput } = await inquirer.prompt([
-                    {
-                        type: 'input',
-                        name: 'bugsEmailInput',
-                        message: chalk.cyan(`Enter the ${chalk.magenta('email')} to report bugs to:`)
-                    }
-                ]);
-                bugsURL = bugsEmailInput;
+                    message: chalk.cyan(`Enter the ${chalk.magenta('license')} you wish to use:`),
+                    default: packageJson.license || ''
+                });
             }
 
-            // confirmation message box
-            let confirmationMessage = boxen(chalk.bold('The following will be added to your package.json:\n\n') +
-                `Author: ${author}\n` +
-                `Repository URL: ${repository}\n` +
-                `Keywords: ${keywords.join(', ')}\n` +
-                `Homepage: ${homepage}\n` +
-                `Funding: ${funding}\n` +
-                `License: ${license}\n` +
-                `Bugs Type: ${bugsType}\n` +
-                `Bugs URL/Email: ${bugsURL}\n`, 
-            { borderStyle: 'round', padding: 1, margin: 1, borderColor: 'cyan', title: 'Just A Heads Up!', titleAlignment: 'center'});
+            const responses = await inquirer.prompt(prompts);
 
-            console.log(confirmationMessage);
+            const updatedPackageJson = { ...packageJson, ...responses };
+            await fs.writeJson(packageJsonPath, updatedPackageJson, { spaces: 2 });
 
-            // prompt that asks the user to confirm
-            const { confirm } = await inquirer.prompt([
-                {
-                    type: 'list',
-                    name: 'confirm',
-                    message: 'Would you like to proceed?',
-                    choices: ['Yes', 'No']
-                }
-            ]);
-
-            if (confirm === 'Yes') {
-                // updates package.json if confirmed
-                if (author) packageJson.author = author;
-                if (repository) packageJson.repository = repository;
-                if (keywords) packageJson.keywords = keywords;
-                if (homepage) packageJson.homepage = homepage;
-                if (funding) packageJson.funding = funding;
-                if (license) packageJson.license = license;
-
-                if (bugsType === 'URL') {
-                    if (bugsURL) packageJson.bugs = { url: bugsURL };
-                } else if (bugsType === 'Email') {
-                    if (bugsURL) packageJson.bugs = { email: bugsURL };
-                }
-
-                await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
-                console.log(chalk.green(`\nSuccess! Your package.json has been updated successfully.\n`));
-            } else {
-                // if "No"
-                console.log(chalk.yellow('Operation cancelled.'));
-            }
+            console.log(chalk.green(`\nSuccess! Your package.json has been updated successfully.\n`));
 
         } catch (err) {
             console.error(chalk.red(`Error updating package.json: ${err}`));
