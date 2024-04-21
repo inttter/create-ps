@@ -171,8 +171,9 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     await fs.writeFile(readmeFile, readmeContent, 'utf8');
                     break;
                 case 'CONTRIBUTING.md':
+                    const contributingContent = `# Contributing\n\nThank you for considering contributing to this project! Before you do, please read these guidelines.\n\n<!-- List your package-specific guidelines here !-->`
                     const contributingFile = path.join(process.cwd(), 'CONTRIBUTING.md');
-                    await fs.writeFile(contributingFile, '', 'utf8');
+                    await fs.writeFile(contributingFile, contributingContent, 'utf8');
                     break;
                 case 'CHANGELOG.md':
                     const changelogContent = `# Changelog\n\n# v1.0.0`;
