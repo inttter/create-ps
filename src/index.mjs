@@ -123,18 +123,38 @@ async function createPkgStructure(packageName, description, options, toggles) {
                 case 'test/':
                     const testDir = path.join(process.cwd(), 'test');
                     await fs.ensureDir(testDir);
+
+                    const test = 'example.test.js';
+                    const testFile = path.join(testDir, test);
+                    await fs.writeFile(testFile, '// You should install a testing framework if you are including tests within your package. Some popular ones include:\n\n// Jest: https://jestjs.io/docs/getting-started\n// Mocha: https://mochajs.org/#getting-started\n// Jasmine: https://jasmine.github.io/pages/getting_started.html\n// AVA: https://github.com/avajs/ava?tab=readme-ov-file#usage')
                     break;
                 case 'examples/':
                     const examplesDir = path.join(process.cwd(), 'examples');
                     await fs.ensureDir(examplesDir);
+                    
+                    // if --esm is present, file extension will be .mjs, else will be .js
+                    const exampleExtension = options.esm ? 'mjs' : 'js';
+                    const exampleFileName = `example.${exampleExtension}`;
+                    
+                    const exampleFile = path.join(examplesDir, exampleFileName);
+                    await fs.writeFile(exampleFile, '// Show an example of how your package is used here.');
                     break;
                 case 'docs/':
                     const docsDir = path.join(process.cwd(), 'docs');
                     await fs.ensureDir(docsDir);
+
+                    const exampleDoc = 'getting-started.md';
+                    const docsFile = path.join(docsDir, exampleDoc);
+                    await fs.writeFile(docsFile, '# Getting Started\n\n<!-- Include your relevant documentation here !-->')
                     break;
                 case 'i18n/':
-                    const translationDir = path.join(process.cwd(), 'i18n');
-                    await fs.ensureDir(translationDir);
+                    const i18nDir = path.join(process.cwd(), 'i18n');
+                    const localesDir = path.join(i18nDir, 'locales');
+                    await fs.ensureDir(localesDir);
+                    
+                    const defaultLocale = 'en_US';
+                    const localeFilePath = path.join(localesDir, `${defaultLocale}.json`);                    
+                    await fs.writeJson(localeFilePath);
                     break;
                 case 'assets/':
                     const assetsDir = path.join(process.cwd(), 'assets');
