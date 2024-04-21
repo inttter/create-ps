@@ -154,15 +154,15 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     
                     const defaultLocale = 'en_US';
                     const localeFilePath = path.join(localesDir, `${defaultLocale}.json`);                    
-                    await fs.writeJson(localeFilePath);
+                    await fs.writeFile(localeFilePath, '');
                     break;
                 case 'assets/':
                     const assetsDir = path.join(process.cwd(), 'assets');
                     await fs.ensureDir(assetsDir);
                     break;
                 case '.github/workflows':
-                    const workflowsDir = path.join(process.cwd(), '.github', 'workflows');
-                    await fs.ensureDir(workflowsDir);
+                    const workflowsFolder = path.join(process.cwd(), '.github', 'workflows');
+                    await fs.ensureDir(workflowsFolder);
 
                     const workflow = 'workflow.yml';
                     const workflowFile = path.join(workflowsFolder, workflow);
