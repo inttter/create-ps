@@ -70,7 +70,7 @@ program
                         { name: 'CODE_OF_CONDUCT.md' },
                         { name: 'LICENSE' }
                     ],
-                    default: ['src/', 'test/', 'examples/', 'docs/', 'i18n/', 'assets/', '.github/workflows', '.github/dependabot.yml', '.gitignore', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'CODE_OF_CONDUCT.md', 'LICENSE']
+                    default: []
                 }
             ]);
 
@@ -255,12 +255,12 @@ program
                     name: 'toggles',
                     message: chalk.cyan('Select what you\'d like to include:'),
                     choices: [
-                        { name: 'Author', checked: !!packageJson.author },
-                        { name: 'Repository', checked: !!packageJson.repository },
-                        { name: 'Keywords', checked: !!packageJson.keywords },
-                        { name: 'Homepage', checked: !!packageJson.homepage },
-                        { name: 'Funding', checked: !!packageJson.funding },
-                        { name: 'License', checked: !!packageJson.license },
+                        { name: 'Author', checked: false },
+                        { name: 'Repository', checked: false },
+                        { name: 'Keywords', checked: false },
+                        { name: 'Homepage', checked: false },
+                        { name: 'Funding', checked: false },
+                        { name: 'License', checked: false },
                     ]
                 }
             ]);
