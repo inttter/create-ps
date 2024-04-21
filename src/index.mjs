@@ -67,9 +67,10 @@ program
                         { name: 'README.md' },
                         { name: 'CONTRIBUTING.md' },
                         { name: 'CHANGELOG.md' },
+                        { name: 'CODE_OF_CONDUCT.md' },
                         { name: 'LICENSE' }
                     ],
-                    default: ['src/', 'test/', 'examples/', 'docs/', 'i18n/', 'assets/', '.github/workflows', '.github/dependabot.yml', '.gitignore', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE']
+                    default: ['src/', 'test/', 'examples/', 'docs/', 'i18n/', 'assets/', '.github/workflows', '.github/dependabot.yml', '.gitignore', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'CODE_OF_CONDUCT.md', 'LICENSE']
                 }
             ]);
 
@@ -179,6 +180,16 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     const changelogContent = `# Changelog\n\n# v1.0.0`;
                     const changelogFile = path.join(process.cwd(),  'CHANGELOG.md');
                     await fs.writeFile(changelogFile, changelogContent , 'utf8');
+                    break;
+                case 'CODE_OF_CONDUCT.md':
+                    // fetch the Covenant Code of Conduct from the official source
+                    // Note: coc = Code of Conduct
+                    const cocURL = 'https://www.contributor-covenant.org/version/2/0/code_of_conduct/code_of_conduct.md';
+                    const cocResponse = await axios.get(cocURL);
+                    const cocContent = cocResponse.data;
+                    
+                    const cocFile = path.join(process.cwd(), 'CODE_OF_CONDUCT.md');
+                    await fs.writeFile(cocFile, cocContent, 'utf8');
                     break;
                 case 'LICENSE':
                     // fetch licenses from the github api
