@@ -161,8 +161,8 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     await fs.ensureDir(assetsDir);
                     break;
                 case '.github/workflows':
-                    const workflowsFolder = path.join(process.cwd(), '.github', 'workflows');
-                    await fs.ensureDir(workflowsFolder);
+                    const workflowsDir = path.join(process.cwd(), '.github', 'workflows');
+                    await fs.ensureDir(workflowsDir);
 
                     const workflow = 'workflow.yml';
                     const workflowFile = path.join(workflowsFolder, workflow);
