@@ -92,7 +92,7 @@ async function createPkgStructure(packageName, description, options, toggles) {
 
     try {
         // Loop through each toggle answer and create files/directories accordingly
-        for (const toggle of toggles) {
+        const files = toggles.map(async (toggle) => {
             switch (toggle) {
                 case 'src/':
                     const srcDir = path.join(process.cwd(), 'src');
@@ -234,6 +234,8 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     break;
                 }
             }
+        )
+        await Promise.all(files);
 
         spinner.succeed(chalk.green(`Success! The package structure for '${packageName}' has been created.`));
     } catch (err) {
