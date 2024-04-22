@@ -7,8 +7,8 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { execa } from 'execa';
 import ora from 'ora';
-import boxen from 'boxen';
 import axios from 'axios';
+import gitUserName from 'git-user-name';
 
 const baseURL = 'https://api.github.com/licenses';
 
@@ -272,7 +272,7 @@ program
                     type: 'input',
                     name: 'author',
                     message: chalk.cyan(`Enter the ${chalk.magenta('author')} of this package:`),
-                    default: packageJson.author || ''
+                    default: gitUserName()
                 });
             }
 
