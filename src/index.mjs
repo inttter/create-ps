@@ -196,7 +196,7 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     await fs.writeFile(contributingFile, contributingContent, 'utf8');
                     break;
                 case 'CHANGELOG.md':
-                    const changelogContent = `# Changelog\n\n# v1.0.0`;
+                    const changelogContent = `# Changelog\n\n# v1.0.0\n\n* 🎉 Initial commit`;
                     const changelogFile = path.join(process.cwd(),  'CHANGELOG.md');
                     await fs.writeFile(changelogFile, changelogContent , 'utf8');
                     break;
