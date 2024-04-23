@@ -9,6 +9,7 @@ import { execa } from 'execa';
 import ora from 'ora';
 import axios from 'axios';
 import gitUserName from 'git-user-name';
+import consola from 'consola'
 
 const baseURL = 'https://api.github.com/licenses';
 
@@ -91,7 +92,40 @@ async function createPkgStructure(packageName, description, options, toggles) {
     const spinner = ora('Creating package structure...').start();
 
     try {
-        // Loop through each toggle answer and create files/directories accordingly
+        // check for existing files
+        const existingFiles = [];
+        for (const toggle of toggles) {
+            const filePath = path.join(process.cwd(), toggle);
+            const exists = await fs.pathExists(filePath);
+            if (exists && (await fs.stat(filePath)).isFile()) {
+                existingFiles.push(filePath);
+            }
+        }
+
+        // warning message which lists what may be overwritten
+        if (existingFiles.length > 0) {
+            console.log('\n');
+            consola.warn(chalk.yellow('The following files already exist and may be overwritten:'));
+            existingFiles.forEach(file => console.log(chalk.yellow(`- ${file}`)));
+            console.log('\n');
+            spinner.stop();
+            
+            // prompt for if they'd like to continue despite existing files
+            const { continueCreation } = await inquirer.prompt({
+                type: 'confirm',
+                name: 'continueCreation',
+                message: chalk.cyan('Would you like to continue anyway?'),
+                default: false,
+            });
+            
+            // when user selects 'N'
+            if (!continueCreation) {
+                spinner.fail(chalk.red('Package creation aborted.'));
+                return;
+            }
+        }
+
+        // loop through each toggle answer and create files/directories accordingly
         const files = toggles.map(async (toggle) => {
             switch (toggle) {
                 case 'src/':
@@ -112,8 +146,6 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     const packageJson = await fs.readJson(packageJsonPath);
 
                     // this determines the correct main file based on if --esm is specified
-                    // if the file/folder name or location gets changed, the user will have to
-                    // manually update it in the package.json themselves
                     const mainFile = process.argv.includes('--esm') || process.argv.includes('--ecmascript') ? './src/index.mjs' : './src/index.js';
 
                     packageJson.main = mainFile;
