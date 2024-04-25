@@ -6,7 +6,7 @@
 [![NPM version](https://img.shields.io/npm/v/create-ps.svg?style=flat&colorA=black)](https://www.npmjs.com/package/create-ps)
 [![License](https://shields.io/github/license/inttter/create-ps?labelColor=black&colorB=blue)](https://github.com/inttter/create-ps/blob/master/LICENSE/)
 [![Kofi](https://img.shields.io/badge/donate-kofi-f39f37?labelColor=black&colorB=blue)](https://ko-fi.com/intter)
-[![Kofi](https://img.shields.io/badge/blog-post-f39f37?labelColor=black&colorB=blue)](https://iinter.me/blog/creating-packages)
+[![Blog Post](https://img.shields.io/badge/blog-post-f39f37?labelColor=black&colorB=blue)](https://iinter.me/blog/creating-packages)
 
 
 <div align="center">
