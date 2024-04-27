@@ -25,10 +25,10 @@ const asciiArt = chalk.yellow(`
 `);
 
 program
-    .version('2.0.0')
-    .description('Creates a foundation for your NPM package.')
+    .name('cps')
+    .description('create-ps is a CLI tool which helps you to create the foundations for an NPM package,')
     .arguments('<packageName>')
-    .option('--esm', 'creates an EcmaScript file in the src directory')
+    .option('--esm', 'use ESM files and syntax')
     .action(async (packageName, options) => {
         console.log(asciiArt);
         try {
@@ -81,10 +81,10 @@ program
             try {
                 await execa('git', ['init']);
             } catch (err) {
-                console.error(chalk.red(`Error initializing Git repository: ${err}`));
+                consola.error(chalk.red(`Error initializing Git repository: ${err}`));
             }
         } catch (err) {
-            console.error(`Error initializing package: ${err}`);
+            consola.error(`Error initializing package: ${err}`);
         }
     });
 
@@ -106,7 +106,7 @@ async function createPkgStructure(packageName, description, options, toggles) {
         if (existingFiles.length > 0) {
             console.log('\n');
             consola.warn(chalk.yellow('The following files already exist and may be overwritten:'));
-            existingFiles.forEach(file => console.log(chalk.yellow(`- ${file}`)));
+            existingFiles.forEach(file => console.log(chalk.yellow(`• ${file}`)));
             console.log('\n');
             spinner.stop();
             
@@ -278,7 +278,7 @@ async function createPkgStructure(packageName, description, options, toggles) {
 
 program
     .command('pkg-config')
-    .description('adds/customises different fields in your package.json')
+    .description('customise different fields in your package.json')
     .action(async () => {
         try {
             const packageJsonPath = path.join(process.cwd(), 'package.json');
@@ -365,7 +365,7 @@ program
             console.log(chalk.green(`\nSuccess! Your package.json has been updated successfully.\n`));
 
         } catch (err) {
-            console.error(chalk.red(`Error updating package.json: ${err}`));
+            consola.error(chalk.red(`Error updating package.json: ${err}`));
         }
     });
 
