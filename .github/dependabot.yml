@@ -6,4 +6,4 @@ updates:
       interval: "daily"
     commit-message:
       # Prefixes all commit messages with "package:"
-      prefix: "package:"
+      prefix: "📦 chore(package):"
