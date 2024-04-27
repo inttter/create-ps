@@ -1,6 +1,6 @@
 {
   "name": "create-ps",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "engines": {
     "node": ">=18"
   },
@@ -33,7 +33,7 @@
     "execa": "^8.0.1",
     "fs-extra": "^11.2.0",
     "git-user-name": "^2.0.0",
-    "inquirer": "^9.2.19",
+    "inquirer": "^9.2.20",
     "ora": "^8.0.1"
   },
   "funding": {
