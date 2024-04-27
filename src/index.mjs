@@ -223,7 +223,7 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     await fs.writeFile(readmeFile, readmeContent, 'utf8');
                     break;
                 case 'CONTRIBUTING.md':
-                    const contributingContent = `# Contributing\n\nThank you for considering contributing to this project! Before you do, please read these guidelines.\n\n<!-- List your package-specific guidelines here !-->`
+                    const contributingContent = `# Contributing\n\nThank you for considering contributing to this project! Before you do, please read these guidelines.\n\n## Submitting a Pull Request\n\nTo submit a pull request, follow these steps:\n\n1. Fork the repository\n\n2. Clone your forked repository to your local machine\n\n3. Create a new branch for your changes\n\n4. Make your changes\n\n5. Commit your changes to the branch\n\n6. Push your changes to your forked repository\n\n7. Open a pull request on GitHub\n\n<!-- Continue to list more guidelines which are specific to the package you are making. !-->`;
                     const contributingFile = path.join(process.cwd(), 'CONTRIBUTING.md');
                     await fs.writeFile(contributingFile, contributingContent, 'utf8');
                     break;
