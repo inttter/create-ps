@@ -175,9 +175,9 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     const docsDir = path.join(process.cwd(), 'docs');
                     await fs.ensureDir(docsDir);
 
-                    const exampleDoc = 'getting-started.md';
+                    const exampleDoc = 'example.md';
                     const docsFile = path.join(docsDir, exampleDoc);
-                    await fs.writeFile(docsFile, '# Getting Started\n\n<!-- Include your relevant documentation here !-->')
+                    await fs.writeFile(docsFile, `<!-- NOTE: This is a template documentation file. Feel free to modify it according to what your package is. !-->\n\n# ${packageName} Documentation 📚\n\nWelcome to the documentation for the ${packageName} package!\n\nThis documentation houses everything you will need to know about how to use ${packageName} within your own projects.`);
                     break;
                 case 'i18n/':
                     const i18nDir = path.join(process.cwd(), 'i18n');
