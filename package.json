@@ -25,6 +25,7 @@
   "author": "Inter",
   "license": "MIT",
   "dependencies": {
+    "@clack/prompts": "^0.7.0",
     "axios": "^1.6.8",
     "boxen": "^7.1.1",
     "chalk": "^5.3.0",
@@ -32,9 +33,7 @@
     "consola": "^3.2.3",
     "execa": "^8.0.1",
     "fs-extra": "^11.2.0",
-    "git-user-name": "^2.0.0",
-    "inquirer": "^9.2.20",
-    "ora": "^8.0.1"
+    "git-user-name": "^2.0.0"
   },
   "funding": {
     "type": "individual",

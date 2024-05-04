@@ -3,26 +3,15 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { program } from 'commander';
-import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { execa } from 'execa';
-import ora from 'ora';
 import axios from 'axios';
 import gitUserName from 'git-user-name';
-import consola from 'consola'
+import { consola } from 'consola'
+import { intro, multiselect, select, confirm, text } from '@clack/prompts';
 
+// api to fetch licenses from. used for the license switch case
 const baseURL = 'https://api.github.com/licenses';
-
-const asciiArt = chalk.yellow(`
-                      _                        
-                     | |                       
-   ___ _ __ ___  __ _| |_ ___ ______ _ __  ___ 
-  / __| '__/ _ \\/ _\` | __/ _ \\______| '_ \\/ __|
- | (__| | |  __/ (_| | ||  __/      | |_) \\__ \\
-  \\___|_|  \\___|\\__,_|\\__\\___|      | .__/|___/
-                                    | |        
-                                    |_|        
-`);
 
 program
     .name('cps')
@@ -30,50 +19,48 @@ program
     .arguments('<packageName>')
     .option('--esm', 'use ESM files and syntax')
     .action(async (packageName, options) => {
-        console.log(asciiArt);
         try {
             // runs npm init -y
             await execa('npm', ['init', '-y']);
-            console.log(chalk.green(`\n✔ Ran ${chalk.magenta('npm init -y')} successfully!\n`));
+
+            intro(`${chalk.bgCyan(chalk.black(' create-ps '))}`);
+            
+            const description = {};
 
             // description prompt
-            const { description } = await inquirer.prompt({
-                type: 'input',
-                name: 'description',
+            description.userDescription = await text({
                 message: chalk.cyan(`Enter a ${chalk.magenta('short description')} of the package:`)
             });
-
+            
             // update package.json with the provided description
             const packageJsonPath = path.join(process.cwd(), 'package.json');
             const packageJson = await fs.readJson(packageJsonPath);
-            packageJson.description = description;
+            
+            packageJson.description = description.userDescription;
+            
+            // write the updated package.json back to file
             await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
 
-            // toggle options for files/directories
-            const { toggles } = await inquirer.prompt([
-                {
-                    type: 'checkbox',
-                    name: 'toggles',
-                    message: chalk.cyan('Select what you\'d like to include:'),
-                    choices: [
-                        { name: 'src/' },
-                        { name: 'test/' },
-                        { name: 'examples/' },
-                        { name: 'docs/' },
-                        { name: 'assets/' },
-                        { name: 'i18n/' },
-                        { name: '.github/workflows' },
-                        { name: '.github/dependabot.yml' },
-                        { name: '.gitignore' },
-                        { name: 'README.md' },
-                        { name: 'CONTRIBUTING.md' },
-                        { name: 'CHANGELOG.md' },
-                        { name: 'CODE_OF_CONDUCT.md' },
-                        { name: 'LICENSE' }
-                    ],
-                    default: []
-                }
-            ]);
+            const toggles = await multiselect({
+                message: chalk.cyan('Select what you\'d like to include:'),
+                options: [
+                    { value: 'src/', label: 'Source', hint: 'Recommended' },
+                    { value: 'test/', label: 'Test' },
+                    { value: 'examples/', label: 'Examples' },
+                    { value: 'docs/', label: 'Documentation' },
+                    { value: 'assets/', label: 'Assets / Images' },
+                    { value: 'i18n/', label: 'Internationalization (i18n)' },
+                    { value: '.github/workflows', label: 'GitHub workflows' },
+                    { value: '.github/dependabot.yml', label: 'Dependabot configuration', hint: 'Recommended' },
+                    { value: '.gitignore', label: 'Gitignore', hint: 'Recommended' },
+                    { value: 'README.md', label: 'Readme', hint: 'Recommended' },
+                    { value: 'CONTRIBUTING.md', label: 'Contributing guidelines' },
+                    { value: 'CHANGELOG.md', label: 'Changelog' },
+                    { value: 'CODE_OF_CONDUCT.md', label: 'Code of Conduct' },
+                    { value: 'LICENSE', label: 'License', hint: 'Recommended' }
+                ],
+                required: true,
+            });
 
             await createPkgStructure(packageName, description, options, toggles);
 
@@ -81,16 +68,14 @@ program
             try {
                 await execa('git', ['init']);
             } catch (err) {
-                consola.error(chalk.red(`Error initializing Git repository: ${err}`));
+                consola.error(new Error(chalk.red(`An error occurred when initializing a Git repository: ${err}`)));
             }
         } catch (err) {
-            consola.error(`Error initializing package: ${err}`);
+            consola.error(new Error(chalk.red(`An error occurred when initializing the package: ${err}`)));
         }
     });
 
 async function createPkgStructure(packageName, description, options, toggles) {
-    const spinner = ora('Creating package structure...').start();
-
     try {
         // check for existing files
         const existingFiles = [];
@@ -104,23 +89,20 @@ async function createPkgStructure(packageName, description, options, toggles) {
 
         // warning message which lists what may be overwritten
         if (existingFiles.length > 0) {
-            console.log('\n');
+            console.log();
             consola.warn(chalk.yellow('The following files already exist and may be overwritten:'));
             existingFiles.forEach(file => console.log(chalk.yellow(`• ${file}`)));
-            console.log('\n');
-            spinner.stop();
+            console.log();
             
             // prompt for if they'd like to continue despite existing files
-            const { continueCreation } = await inquirer.prompt({
-                type: 'confirm',
-                name: 'continueCreation',
+            const continueCreation = await confirm({
                 message: chalk.cyan('Would you like to continue anyway?'),
-                default: false,
             });
             
             // when user selects 'N'
             if (!continueCreation) {
-                spinner.fail(chalk.red('Package creation aborted.'));
+                console.log(chalk.red('\n❌ Package creation aborted.\n'));
+                process.exit(0);
                 return;
             }
         }
@@ -244,24 +226,30 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     await fs.writeFile(cocFile, cocContent, 'utf8');
                     break;
                 case 'LICENSE':
-                    // fetch licenses from the github api
-                    const licensesResponse = await axios.get(`${baseURL}`);
-                    const licenses = licensesResponse.data.map(license => license.key);
+                    try {
+                        // Fetch licenses from the GitHub API
+                        const licensesResponse = await axios.get(`${baseURL}`);
+                        const licenses = licensesResponse.data.map(license => ({
+                            label: license.name,
+                            value: license.key,
+                        }));
                     
-                    // prompt the user to pick a license
-                    const { selectedLicense } = await inquirer.prompt({
-                        type: 'list',
-                        name: 'selectedLicense',
-                        message: chalk.cyan(`\nSelect a license:`),
-                        choices: licenses
-                    });
+                        // Prompt the user to select a license
+                        const selectedLicense = await select({
+                            message: chalk.cyan(`Select a license:`),
+                            options: licenses
+                        });
                     
-                    const selectedLicenseResponse = await axios.get(`${baseURL}/${selectedLicense}`);
-                    const selectedLicenseText = selectedLicenseResponse.data.body;
+                        // Fetch the selected license text
+                        const selectedLicenseResponse = await axios.get(`${baseURL}/${selectedLicense}`);
+                        const selectedLicenseText = selectedLicenseResponse.data.body;
                     
-                    // write the selected license text to the LICENSE file
-                    const selectedLicenseFilePath = path.join(process.cwd(), 'LICENSE');
-                    await fs.writeFile(selectedLicenseFilePath, selectedLicenseText, 'utf8');
+                        // Write the selected license text to the LICENSE file
+                        const selectedLicenseFilePath = path.join(process.cwd(), 'LICENSE');
+                        await fs.writeFile(selectedLicenseFilePath, selectedLicenseText, 'utf8');
+                    } catch (error) {
+                        consola.error(new Error(chalk.red(`An error occurred when trying to fetch or write the license: ${error}`)));
+                    }
                     break;
                 default:
                     break;
@@ -270,9 +258,9 @@ async function createPkgStructure(packageName, description, options, toggles) {
         )
         await Promise.all(files);
 
-        spinner.succeed(chalk.green(`Success! The package structure for '${packageName}' has been created.`));
+        consola.success(chalk.green(`The package structure for '${packageName}' has been created successfully.\n`));
     } catch (err) {
-        spinner.fail(chalk.red(`Error creating package structure: ${err}`));
+        consola.error(new Error(chalk.red(`An error occurred when trying to create the structure of your package: ${err}`)));
     }
 }
 
@@ -284,88 +272,70 @@ program
             const packageJsonPath = path.join(process.cwd(), 'package.json');
             const packageJson = await fs.readJson(packageJsonPath);
 
-            const toggles = await inquirer.prompt([
-                {
-                    type: 'checkbox',
-                    name: 'toggles',
-                    message: chalk.cyan('Select what you\'d like to include:'),
-                    choices: [
-                        { name: 'Author', checked: false },
-                        { name: 'Repository', checked: false },
-                        { name: 'Keywords', checked: false },
-                        { name: 'Homepage', checked: false },
-                        { name: 'Funding', checked: false },
-                        { name: 'License', checked: false },
-                    ]
-                }
-            ]);
+            const toggles = await multiselect({
+                message: chalk.cyan('Select what you\'d like to include:'),
+                options: [
+                    { value: 'Author', label: 'Author' },
+                    { value: 'Repository', label: 'Repository' },
+                    { value: 'Keywords', label: 'Keywords' },
+                    { value: 'Homepage', label: 'Homepage' },
+                    { value: 'Funding', label: 'Funding' },
+                    { value: 'License', label: 'License' },
+                ]
+            });
 
-            const prompts = [];
+            const responses = {};
 
-            if (toggles.toggles.includes('Author')) {
-                prompts.push({
-                    type: 'input',
-                    name: 'author',
+            if (toggles.includes('Author')) {
+                responses.author = await text({
                     message: chalk.cyan(`Enter the ${chalk.magenta('author')} of this package:`),
-                    default: gitUserName()
+                    placeholder: gitUserName()
                 });
             }
 
-            if (toggles.toggles.includes('Repository')) {
-                prompts.push({
-                    type: 'input',
-                    name: 'repository',
+            if (toggles.includes('Repository')) {
+                responses.repository = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('repository URL')}:`),
-                    default: packageJson.repository || ''
+                    placeholder: packageJson.repository || ''
                 });
             }
 
-            if (toggles.toggles.includes('Keywords')) {
-                prompts.push({
-                    type: 'input',
-                    name: 'keywords',
+            if (toggles.includes('Keywords')) {
+                const keywordsInput = await text({
                     message: chalk.cyan(`Enter some ${chalk.magenta('keywords')} (comma-separated):`),
-                    filter: input => input.split(',').map(keyword => keyword.trim()),
-                    default: packageJson.keywords ? packageJson.keywords.join(', ') : ''
+                    placeholder: packageJson.keywords ? packageJson.keywords.join(', ') : '',
                 });
+                responses.keywords = keywordsInput.split(',').map(keyword => keyword.trim());
             }
 
-            if (toggles.toggles.includes('Homepage')) {
-                prompts.push({
-                    type: 'input',
-                    name: 'homepage',
+            if (toggles.includes('Homepage')) {
+                responses.homepage = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('homepage URL')}:`),
-                    default: packageJson.homepage || ''
+                    placeholder: packageJson.homepage || ''
                 });
             }
 
-            if (toggles.toggles.includes('Funding')) {
-                prompts.push({
-                    type: 'input',
-                    name: 'funding',
+            if (toggles.includes('Funding')) {
+                responses.funding = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('funding URL')}:`),
-                    default: packageJson.funding || ''
+                    placeholder: packageJson.funding || ''
                 });
             }
 
-            if (toggles.toggles.includes('License')) {
-                prompts.push({
-                    type: 'input',
-                    name: 'license',
+            if (toggles.includes('License')) {
+                responses.license = await text({
                     message: chalk.cyan(`Enter the ${chalk.magenta('license')} you wish to use:`),
-                    default: packageJson.license || ''
+                    placeholder: packageJson.license || ''
                 });
             }
-
-            const responses = await inquirer.prompt(prompts);
 
             const updatedPackageJson = { ...packageJson, ...responses };
             await fs.writeJson(packageJsonPath, updatedPackageJson, { spaces: 2 });
 
-            console.log(chalk.green(`\nSuccess! Your package.json has been updated successfully.\n`));
-
+            console.log()
+            consola.success(chalk.green(`Your package.json has been updated successfully.\n`));
         } catch (err) {
-            consola.error(chalk.red(`Error updating package.json: ${err}`));
+            consola.error(new Error(chalk.red(`An error occurred when trying to update your ${chalk.magenta('package.json')}: ${err}`)));
         }
     });
 
