@@ -23,6 +23,7 @@ program
             // runs npm init -y
             await execa('npm', ['init', '-y']);
 
+            console.log();
             intro(`${chalk.bgCyan(chalk.black(' create-ps '))}`);
             
             const description = {};
