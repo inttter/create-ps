@@ -201,7 +201,7 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     if (options.esm) {
                         importStatement = `import { ${packageName} } from '${packageName}';`;
                     }
-                    const readmeContent = `# ${packageName}\n\n${description}\n\n# Installation\n\n\`\`\`bash\nnpm install ${packageName}\n\`\`\`\n\n## Usage\n\n\`\`\`javascript\n${importStatement}\n\n// (code goes here)\n// If needed, you can also tweak your import statement, depending on your needs.\n\`\`\``;
+                    const readmeContent = `# ${packageName}\n\n${description.userDescription}\n\n# Installation\n\n\`\`\`bash\nnpm install ${packageName}\n\`\`\`\n\n## Usage\n\n\`\`\`javascript\n${importStatement}\n\n// (code goes here)\n// If needed, you can also tweak your import statement, depending on your needs.\n\`\`\``;
                     const readmeFile = path.join(process.cwd(), 'README.md');
                     await fs.writeFile(readmeFile, readmeContent, 'utf8');
                     break;
