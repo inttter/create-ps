@@ -38,6 +38,7 @@ program
             const packageJson = await fs.readJson(packageJsonPath);
             
             packageJson.description = description.userDescription;
+            packageJson.name = packageName
             
             // write the updated package.json back to file
             await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
@@ -259,6 +260,7 @@ async function createPkgStructure(packageName, description, options, toggles) {
         )
         await Promise.all(files);
 
+        console.log();
         consola.success(chalk.green(`The package structure for '${packageName}' has been created successfully.\n`));
     } catch (err) {
         consola.error(new Error(chalk.red(`An error occurred when trying to create the structure of your package: ${err}`)));
