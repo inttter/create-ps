@@ -13,6 +13,10 @@
   <img src="https://github.com/inttter/create-ps/assets/73017070/37438a9f-201a-4c56-a103-b5f40dd79043" width="350">
 </div>
 
+<br>
+
+> You can view a video demo of running create-ps [here](http://files.iinter.me/r/create-ps_Demo.mp4).
+
 
 ## Why?
 
@@ -40,9 +44,9 @@ replacing `<packageName>` with the name of your package.
 
 |   Command      |    Description    |     Aliases      | 
 |----------|-----------|---------------------------|
-`cps pkg-config` | Adds/customises different fields in your `package.json`. A series of prompts will prompt you to fill in different fields of the package.json, such as license ([see here for correct identifiers](https://spdx.org/licenses/)), repository URL, and more. You can also configure existing an existing `package.json`. | N/A | 
+`cps pkg-config` | Adds/customises different fields in your `package.json`. For the license field, see [here](https://spdx.org/licenses/) for correct identifiers. You can also configure existing an existing `package.json`. | N/A | 
 
 
 ## License
 
-Licensed under the MIT License. See `LICENSE`, or click [here](https://github.com/inttter/create-ps/blob/master/LICENSE) for more information.
+©️ `2024` · Licensed under the MIT License. See [here](https://github.com/inttter/create-ps/blob/main/LICENSE) for more information.
