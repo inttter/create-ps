@@ -8,7 +8,7 @@ import { execa } from 'execa';
 import axios from 'axios';
 import gitUserName from 'git-user-name';
 import { consola } from 'consola'
-import { intro, multiselect, select, confirm, text } from '@clack/prompts';
+import { intro, multiselect, select, confirm, text, outro } from '@clack/prompts';
 
 // api to fetch licenses from. used for the license switch case
 const baseURL = 'https://api.github.com/licenses';
@@ -260,8 +260,7 @@ async function createPkgStructure(packageName, description, options, toggles) {
         )
         await Promise.all(files);
 
-        console.log();
-        consola.success(chalk.green(`The package structure for '${packageName}' has been created successfully.\n`));
+        outro(`${chalk.green(`The package structure for '${chalk.green.bold(packageName)}' has been created successfully!`)}`);
     } catch (err) {
         consola.error(new Error(chalk.red(`An error occurred when trying to create the structure of your package: ${err}`)));
     }
@@ -299,14 +298,12 @@ program
             if (toggles.includes('Repository')) {
                 responses.repository = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('repository URL')}:`),
-                    placeholder: packageJson.repository || ''
                 });
             }
 
             if (toggles.includes('Keywords')) {
                 const keywordsInput = await text({
                     message: chalk.cyan(`Enter some ${chalk.magenta('keywords')} (comma-separated):`),
-                    placeholder: packageJson.keywords ? packageJson.keywords.join(', ') : '',
                 });
                 responses.keywords = keywordsInput.split(',').map(keyword => keyword.trim());
             }
@@ -314,21 +311,18 @@ program
             if (toggles.includes('Homepage')) {
                 responses.homepage = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('homepage URL')}:`),
-                    placeholder: packageJson.homepage || ''
                 });
             }
 
             if (toggles.includes('Funding')) {
                 responses.funding = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('funding URL')}:`),
-                    placeholder: packageJson.funding || ''
                 });
             }
 
             if (toggles.includes('License')) {
                 responses.license = await text({
                     message: chalk.cyan(`Enter the ${chalk.magenta('license')} you wish to use:`),
-                    placeholder: packageJson.license || ''
                 });
             }
 
@@ -338,8 +332,7 @@ program
             // run npm pkg fix here to properly format the "repository" field and make it correct
             await execa('npm', ['pkg', 'fix']);
 
-            console.log()
-            consola.success(chalk.green(`Your package.json has been updated successfully.\n`));
+            outro(`${chalk.green(`Your ${chalk.green.bold('package.json')} has been updated successfully!`)}`);
         } catch (err) {
             consola.error(new Error(chalk.red(`An error occurred when trying to update your ${chalk.magenta('package.json')}: ${err}`)));
         }
