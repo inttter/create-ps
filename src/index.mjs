@@ -40,6 +40,11 @@ program
             packageJson.description = description.userDescription;
             packageJson.name = packageName
             
+            // remove optional "directories" field from package.json which for some reason gets
+            // generated when running npm init -y with create-ps
+            // https://docs.npmjs.com/cli/v10/configuring-npm/package-json#directories
+            delete packageJson.directories;
+
             // write the updated package.json back to file
             await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
 
