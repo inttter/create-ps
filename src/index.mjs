@@ -335,6 +335,9 @@ program
             const updatedPackageJson = { ...packageJson, ...responses };
             await fs.writeJson(packageJsonPath, updatedPackageJson, { spaces: 2 });
 
+            // run npm pkg fix here to properly format the "repository" field and make it correct
+            await execa('npm', ['pkg', 'fix']);
+
             console.log()
             consola.success(chalk.green(`Your package.json has been updated successfully.\n`));
         } catch (err) {
