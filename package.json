@@ -1,6 +1,6 @@
 {
   "name": "create-ps",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "engines": {
     "node": ">=18"
   },
@@ -14,13 +14,11 @@
   },
   "keywords": [
     "npm",
-    "git",
-    "package",
     "scaffolding",
     "automation",
     "setup",
-    "node",
-    "structure"
+    "structure",
+    "template"
   ],
   "author": "Inter",
   "license": "MIT",
