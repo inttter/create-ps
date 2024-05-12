@@ -9,6 +9,7 @@ import axios from 'axios';
 import gitUserName from 'git-user-name';
 import { consola } from 'consola'
 import { intro, multiselect, select, confirm, text, outro } from '@clack/prompts';
+import url from 'node:url';
 
 // api to fetch licenses from. used for the license switch case
 const baseURL = 'https://api.github.com/licenses';
@@ -293,16 +294,31 @@ program
 
             const responses = {};
 
+            const isValidURL = (url) => {
+                try {
+                    new URL(url);
+                    return true;
+                } catch (error) {
+                    return false;
+                }
+            };
+
             if (toggles.includes('Author')) {
                 responses.author = await text({
                     message: chalk.cyan(`Enter the ${chalk.magenta('author')} of this package:`),
-                    placeholder: gitUserName()
+                    placeholder: gitUserName(),
                 });
             }
 
             if (toggles.includes('Repository')) {
                 responses.repository = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('repository URL')}:`),
+                    validate: input => {
+                        if (!isValidURL(input)) {
+                            return "Please enter a valid URL.";
+                        }
+                        return;
+                    }
                 });
             }
 
@@ -316,12 +332,24 @@ program
             if (toggles.includes('Homepage')) {
                 responses.homepage = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('homepage URL')}:`),
+                    validate: input => {
+                        if (!isValidURL(input)) {
+                            return "Please enter a valid URL.";
+                        }
+                        return;
+                    }
                 });
             }
 
             if (toggles.includes('Funding')) {
                 responses.funding = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('funding URL')}:`),
+                    validate: input => {
+                        if (!isValidURL(input)) {
+                            return "Please enter a valid URL.";
+                        }
+                        return;
+                    }
                 });
             }
 
