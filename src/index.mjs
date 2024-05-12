@@ -342,17 +342,43 @@ program
             }
 
             if (toggles.includes('Funding')) {
-                responses.funding = await text({
-                    message: chalk.cyan(`Enter a ${chalk.magenta('funding URL')}:`),
-                    validate: input => {
-                        if (!isValidURL(input)) {
-                            return "Please enter a valid URL.";
-                        }
-                        return;
-                    }
+                const fundingOptions = [
+                    { value: 'individual', label: 'Individual' },
+                    { value: 'organization', label: 'Organization' },
+                    { value: 'patreon', label: 'Patreon' }
+                ];
+                const fundingType = await select({
+                    message: chalk.cyan(`Select the ${chalk.magenta('funding type')}:`),
+                    options: fundingOptions
                 });
+            
+                let fundingUrl;
+                if (fundingType === 'patreon') {
+                    fundingUrl = await text({
+                        message: chalk.cyan(`Enter the ${chalk.magenta('Patreon URL')}:`),
+                        validate: input => {
+                            if (!input.startsWith('https://patreon.com/') && !input.startsWith('https://www.patreon.com/')) {
+                                return "Please enter a Patreon URL.";
+                            }
+                            return;
+                        }
+                    });
+                } else {
+                    fundingUrl = await text({
+                        message: chalk.cyan(`Enter the ${chalk.magenta('funding URL')}:`),
+                        validate: input => {
+                            if (!isValidURL(input)) {
+                                return "Please enter a valid URL.";
+                            }
+                            return;
+                        }
+                    });
+                }
+            
+                const funding = { type: fundingType, url: fundingUrl };
+                responses.funding = funding;
             }
-
+            
             if (toggles.includes('License')) {
                 responses.license = await text({
                     message: chalk.cyan(`Enter the ${chalk.magenta('license')} you wish to use:`),
