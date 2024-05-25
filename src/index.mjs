@@ -9,7 +9,6 @@ import axios from 'axios';
 import gitUserName from 'git-user-name';
 import { consola } from 'consola'
 import { intro, multiselect, select, confirm, text, outro } from '@clack/prompts';
-import url from 'node:url';
 
 // api to fetch licenses from. used for the license switch case
 const baseURL = 'https://api.github.com/licenses';
@@ -294,6 +293,7 @@ program
 
             const responses = {};
 
+            // check for valid urls
             const isValidURL = (url) => {
                 try {
                     new URL(url);
@@ -342,43 +342,30 @@ program
             }
 
             if (toggles.includes('Funding')) {
-                const fundingOptions = [
-                    { value: 'individual', label: 'Individual' },
-                    { value: 'organization', label: 'Organization' },
-                    { value: 'patreon', label: 'Patreon' }
-                ];
-                const fundingType = await select({
-                    message: chalk.cyan(`Select the ${chalk.magenta('funding type')}:`),
-                    options: fundingOptions
+                let fundingType = await text({
+                    message: chalk.cyan(`Enter the ${chalk.magenta('funding type')} you want to use:`),
                 });
-            
-                let fundingUrl;
-                if (fundingType === 'patreon') {
-                    fundingUrl = await text({
-                        message: chalk.cyan(`Enter the ${chalk.magenta('Patreon URL')}:`),
-                        validate: input => {
-                            if (!input.startsWith('https://patreon.com/') && !input.startsWith('https://www.patreon.com/')) {
-                                return "Please enter a Patreon URL.";
-                            }
-                            return;
-                        }
-                    });
-                } else {
-                    fundingUrl = await text({
-                        message: chalk.cyan(`Enter the ${chalk.magenta('funding URL')}:`),
-                        validate: input => {
-                            if (!isValidURL(input)) {
-                                return "Please enter a valid URL.";
-                            }
-                            return;
-                        }
-                    });
+
+                // if user enters nothing, it will default to individual
+                if (!fundingType) {
+                    fundingType = 'individual';
+                    console.log(chalk.yellow(`   ⚠️  No funding type specified. Defaulting to 'individual'...`));
                 }
             
+                const fundingUrl = await text({
+                    message: chalk.cyan(`Enter the ${chalk.magenta('funding URL')}:`),
+                    validate: input => {
+                        if (!isValidURL(input)) {
+                            return "Please enter a valid URL.";
+                        }
+                        return;
+                    }
+                });
+
                 const funding = { type: fundingType, url: fundingUrl };
                 responses.funding = funding;
             }
-            
+
             if (toggles.includes('License')) {
                 responses.license = await text({
                     message: chalk.cyan(`Enter the ${chalk.magenta('license')} you wish to use:`),
