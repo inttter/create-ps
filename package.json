@@ -1,6 +1,6 @@
 {
   "name": "create-ps",
-  "version": "4.0.4",
+  "version": "4.1.0",
   "engines": {
     "node": ">=18"
   },
@@ -14,17 +14,16 @@
   },
   "keywords": [
     "npm",
+    "template",
     "scaffolding",
-    "automation",
     "setup",
-    "structure",
-    "template"
+    "structure"
   ],
   "author": "Inter",
   "license": "MIT",
   "dependencies": {
     "@clack/prompts": "^0.7.0",
-    "axios": "^1.7.1",
+    "axios": "^1.7.2",
     "boxen": "^7.1.1",
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
