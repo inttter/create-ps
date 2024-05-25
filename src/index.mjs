@@ -52,13 +52,13 @@ program
                 message: chalk.cyan('Select what you\'d like to include:'),
                 options: [
                     { value: 'src/', label: 'Source', hint: 'Recommended' },
-                    { value: 'test/', label: 'Test' },
+                    { value: 'test/', label: 'Test', hint: 'Recommended' },
                     { value: 'examples/', label: 'Examples' },
                     { value: 'docs/', label: 'Documentation' },
                     { value: 'assets/', label: 'Assets / Images' },
                     { value: 'i18n/', label: 'Internationalization (i18n)' },
                     { value: '.github/workflows', label: 'GitHub workflows' },
-                    { value: '.github/dependabot.yml', label: 'Dependabot configuration', hint: 'Recommended' },
+                    { value: '.github/dependabot.yml', label: 'Dependabot configuration' },
                     { value: '.gitignore', label: 'Gitignore', hint: 'Recommended' },
                     { value: 'README.md', label: 'Readme', hint: 'Recommended' },
                     { value: 'CONTRIBUTING.md', label: 'Contributing guidelines' },
@@ -282,12 +282,12 @@ program
             const toggles = await multiselect({
                 message: chalk.cyan('Select what you\'d like to include:'),
                 options: [
-                    { value: 'Author', label: 'Author' },
+                    { value: 'Author', label: 'Author', hint: 'Recommended' },
                     { value: 'Repository', label: 'Repository' },
-                    { value: 'Keywords', label: 'Keywords' },
+                    { value: 'Keywords', label: 'Keywords', hint: 'Recommended' },
                     { value: 'Homepage', label: 'Homepage' },
                     { value: 'Funding', label: 'Funding' },
-                    { value: 'License', label: 'License' },
+                    { value: 'License', label: 'License', hint: 'Recommended' },
                 ]
             });
 
