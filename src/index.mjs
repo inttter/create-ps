@@ -198,7 +198,11 @@ async function createPkgStructure(packageName, description, options, toggles) {
                     await fs.writeFile(dependabotFile, 'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    directory: "/"\n    schedule:\n     interval: "daily"', 'utf-8');
                     break;
                 case '.gitignore':
-                    const gitignoreContent = `node_modules/`;
+                    // https://github.com/github/gitignore/blob/main/Node.gitignore
+                    const gitignoreURL = 'https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore'
+                    const gitIgnoreResponse = await axios.get(gitignoreURL);
+                    const gitignoreContent = gitIgnoreResponse.data;
+
                     const gitignoreFile = path.join(process.cwd(), '.gitignore');
                     await fs.writeFile(gitignoreFile, gitignoreContent, 'utf8');
                     break;
