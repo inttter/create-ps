@@ -8,7 +8,7 @@ import { execa } from 'execa';
 import axios from 'axios';
 import gitUserName from 'git-user-name';
 import { consola } from 'consola'
-import { intro, multiselect, select, confirm, text, outro } from '@clack/prompts';
+import { intro, multiselect, select, confirm, text, outro, spinner } from '@clack/prompts';
 
 // api to fetch licenses from. used for the license switch case
 const baseURL = 'https://api.github.com/licenses';
@@ -83,210 +83,232 @@ program
         }
     });
 
-async function createPkgStructure(packageName, description, options, toggles) {
-    try {
-        // check for existing files
-        const existingFiles = [];
-        for (const toggle of toggles) {
-            const filePath = path.join(process.cwd(), toggle);
-            const exists = await fs.pathExists(filePath);
-            if (exists && (await fs.stat(filePath)).isFile()) {
-                existingFiles.push(filePath);
-            }
-        }
-
-        // warning message which lists what may be overwritten
-        if (existingFiles.length > 0) {
-            console.log();
-            consola.warn(chalk.yellow('The following files already exist and may be overwritten:'));
-            existingFiles.forEach(file => console.log(chalk.yellow(`• ${file}`)));
-            console.log();
-            
-            // prompt for if they'd like to continue despite existing files
-            const continueCreation = await confirm({
-                message: chalk.cyan('Would you like to continue anyway?'),
-            });
-            
-            // when user selects 'N'
-            if (!continueCreation) {
-                console.log(chalk.red('\n❌ Package creation aborted.\n'));
-                process.exit(0);
-                return;
-            }
-        }
-
-        // loop through each toggle answer and create files/directories accordingly
-        const files = toggles.map(async (toggle) => {
-            switch (toggle) {
-                case 'src/':
-                    const srcDir = path.join(process.cwd(), 'src');
-                    await fs.ensureDir(srcDir);
-
-                    // if --esm is specified, changes the file name to index.mjs, else, keep as index.js
-                    let indexFileName = 'index.js';
-                    if (process.argv.includes('--esm') || process.argv.includes('--ecmascript')) {
-                        indexFileName = 'index.mjs';
-                    }
-
-                    const indexFile = path.join(srcDir, indexFileName);
-                    await fs.writeFile(indexFile, '', 'utf8');
-
-                    // updates the main field in package.json
-                    const packageJsonPath = path.join(process.cwd(), 'package.json');
-                    const packageJson = await fs.readJson(packageJsonPath);
-
-                    // this determines the correct main file based on if --esm is specified
-                    const mainFile = process.argv.includes('--esm') || process.argv.includes('--ecmascript') ? './src/index.mjs' : './src/index.js';
-
-                    packageJson.main = mainFile;
-
-                    await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 }); // writes to package.json
-                    break;
-                case 'test/':
-                    const testDir = path.join(process.cwd(), 'test');
-                    await fs.ensureDir(testDir);
-
-                    const test = 'example.test.js';
-                    const testFile = path.join(testDir, test);
-                    await fs.writeFile(testFile, '// You should install a testing framework if you are including tests within your package. Some popular ones include:\n\n// Jest: https://jestjs.io/docs/getting-started\n// Mocha: https://mochajs.org/#getting-started\n// Jasmine: https://jasmine.github.io/pages/getting_started.html\n// AVA: https://github.com/avajs/ava?tab=readme-ov-file#usage')
-                    break;
-                case 'examples/':
-                    const examplesDir = path.join(process.cwd(), 'examples');
-                    await fs.ensureDir(examplesDir);
-                    
-                    // if --esm is present, file extension will be .mjs, else will be .js
-                    const exampleExtension = options.esm ? 'mjs' : 'js';
-                    const exampleFileName = `example.${exampleExtension}`;
-                    
-                    const exampleFile = path.join(examplesDir, exampleFileName);
-                    await fs.writeFile(exampleFile, '// Show an example of how your package is used here.');
-                    break;
-                case 'docs/':
-                    const docsDir = path.join(process.cwd(), 'docs');
-                    await fs.ensureDir(docsDir);
-
-                    const exampleDoc = 'example.md';
-                    const docsFile = path.join(docsDir, exampleDoc);
-                    await fs.writeFile(docsFile, `<!-- NOTE: This is a template documentation file. Feel free to modify it according to what your package is. !-->\n\n# ${packageName} Documentation 📚\n\nWelcome to the documentation for the ${packageName} package!\n\nThis documentation houses everything you will need to know about how to use ${packageName} within your own projects.`);
-                    break;
-                case 'i18n/':
-                    const i18nDir = path.join(process.cwd(), 'i18n');
-                    const localesDir = path.join(i18nDir, 'locales');
-                    await fs.ensureDir(localesDir);
-                    
-                    const defaultLocale = 'en_US';
-                    const localeFilePath = path.join(localesDir, `${defaultLocale}.json`);                    
-                    await fs.writeFile(localeFilePath, '');
-                    break;
-                case 'assets/':
-                    const assetsDir = path.join(process.cwd(), 'assets');
-                    await fs.ensureDir(assetsDir);
-                    break;
-                case '.github/workflows':
-                    const workflowsDir = path.join(process.cwd(), '.github', 'workflows');
-                    await fs.ensureDir(workflowsDir);
-
-                    const workflow = 'workflow.yml';
-                    const workflowFile = path.join(workflowsDir, workflow);
-                    await fs.writeFile(workflowFile, '# You can include any type of workflow here,\n# for example, CI/CD, publishing, making issues stale, and more.\n\n# See the GitHub Workflow docs here: https://docs.github.com/en/actions/using-workflows.')
-                    break;
-                case '.github/dependabot.yml':
-                    const dependabotDir = path.join(process.cwd(), '.github');
-                    await fs.ensureDir(dependabotDir);
-                    
-                    const dependabot = 'dependabot.yml';
-                    const dependabotFile = path.join(dependabotDir, dependabot);
-                    await fs.writeFile(dependabotFile, 'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    directory: "/"\n    schedule:\n     interval: "daily"', 'utf-8');
-                    break;
-                case '.gitignore':
-                    // https://github.com/github/gitignore/blob/main/Node.gitignore
-                    const gitignoreURL = 'https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore'
-                    const gitIgnoreResponse = await axios.get(gitignoreURL);
-                    const gitignoreContent = gitIgnoreResponse.data;
-
-                    const gitignoreFile = path.join(process.cwd(), '.gitignore');
-                    await fs.writeFile(gitignoreFile, gitignoreContent, 'utf8');
-                    break;
-                case 'README.md':
-                    let importStatement = `const ${packageName} = require('${packageName}');`;
-                    if (options.esm) {
-                        importStatement = `import { ${packageName} } from '${packageName}';`;
-                    }
-                    const readmeContent = `# ${packageName}\n\n${description.userDescription}\n\n# Installation\n\n\`\`\`bash\nnpm install ${packageName}\n\`\`\`\n\n## Usage\n\n\`\`\`javascript\n${importStatement}\n\n// (code goes here)\n// If needed, you can also tweak your import statement, depending on your needs.\n\`\`\``;
-                    const readmeFile = path.join(process.cwd(), 'README.md');
-                    await fs.writeFile(readmeFile, readmeContent, 'utf8');
-                    break;
-                case 'CONTRIBUTING.md':
-                    const contributingContent = `# Contributing\n\nThank you for considering contributing to this project! Before you do, please read these guidelines.\n\n## Submitting a Pull Request\n\nTo submit a pull request, follow these steps:\n\n1. Fork the repository\n\n2. Clone your forked repository to your local machine\n\n3. Create a new branch for your changes\n\n4. Make your changes\n\n5. Commit your changes to the branch\n\n6. Push your changes to your forked repository\n\n7. Open a pull request on GitHub\n\n<!-- Continue to list more guidelines which are specific to the package you are making. !-->`;
-                    const contributingFile = path.join(process.cwd(), 'CONTRIBUTING.md');
-                    await fs.writeFile(contributingFile, contributingContent, 'utf8');
-                    break;
-                case 'CHANGELOG.md':
-                    const currentDate = new Date().toISOString().split('T')[0];
-                    const changelogContent = `# Changelog\n\n# v1.0.0 (${currentDate})\n\n* 🎉 Initial commit`;
-                    const changelogFile = path.join(process.cwd(),  'CHANGELOG.md');
-                    await fs.writeFile(changelogFile, changelogContent , 'utf8');
-                    break;
-                case 'CODE_OF_CONDUCT.md':
-                    // fetch the Covenant Code of Conduct from the official source
-                    // Note: coc = Code of Conduct
-                    const cocURL = 'https://www.contributor-covenant.org/version/2/0/code_of_conduct/code_of_conduct.md';
-                    const cocResponse = await axios.get(cocURL);
-                    const cocContent = cocResponse.data;
-                    
-                    const cocFile = path.join(process.cwd(), 'CODE_OF_CONDUCT.md');
-                    await fs.writeFile(cocFile, cocContent, 'utf8');
-                    break;
-                case 'LICENSE':
-                    try {
-                        // Fetch licenses from the GitHub API
-                        const licensesResponse = await axios.get(`${baseURL}`);
-                        const licenses = licensesResponse.data.map(license => ({
-                            label: license.name,
-                            value: license.key,
-                        }));
-                    
-                        // Prompt the user to select a license
-                        const selectedLicense = await select({
-                            message: chalk.cyan(`Select a license:`),
-                            options: licenses
-                        });
-                    
-                        // Fetch the selected license text
-                        const selectedLicenseResponse = await axios.get(`${baseURL}/${selectedLicense}`);
-                        const selectedLicenseText = selectedLicenseResponse.data.body;
-                    
-                        // Write the selected license text to the LICENSE file
-                        const selectedLicenseFilePath = path.join(process.cwd(), 'LICENSE');
-                        await fs.writeFile(selectedLicenseFilePath, selectedLicenseText, 'utf8');
-                    } catch (error) {
-                        consola.error(new Error(chalk.red(`An error occurred when trying to fetch or write the license: ${error}`)));
-                    }
-                    break;
-                case 'dependencies':
-                    const depNamesPrompt = await text({
-                        message: chalk.cyan(`Enter the name of the ${chalk.magenta('dependencies')} you want to install (comma-seperated):`)
-                    })
-
-                    const depNames = depNamesPrompt.split(',').map(dep => dep.trim());
-
-                    try {
-                        await execa('npm', ['install', ...depNames]);
-                    } catch (error) {
-                        consola.error(new Error(chalk.red(`An error occurred when trying to install dependencies: ${error}`)));
-                    }
-                default:
-                    break;
+    async function createPkgStructure(packageName, description, options, toggles) {
+        try {
+            // Check for existing files
+            const existingFiles = [];
+            for (const toggle of toggles) {
+                const filePath = path.join(process.cwd(), toggle);
+                const exists = await fs.pathExists(filePath);
+                if (exists && (await fs.stat(filePath)).isFile()) {
+                    existingFiles.push(filePath);
                 }
             }
-        )
-        await Promise.all(files);
-
-        outro(`${chalk.green(`The package structure for '${chalk.green.bold(packageName)}' has been created successfully!`)}`);
-    } catch (err) {
-        consola.error(new Error(chalk.red(`An error occurred when trying to create the structure of your package: ${err}`)));
+    
+            // Warning message which lists what may be overwritten
+            if (existingFiles.length > 0) {
+                console.log();
+                consola.warn(chalk.yellow('The following files already exist and may be overwritten:'));
+                existingFiles.forEach(file => console.log(chalk.yellow(`• ${file}`)));
+                console.log();
+                
+                // Prompt for if they'd like to continue despite existing files
+                const continueCreation = await confirm({
+                    message: chalk.cyan('Would you like to continue anyway?'),
+                });
+                
+                // When user selects 'N'
+                if (!continueCreation) {
+                    console.log(chalk.red('\n❌ Package creation aborted.\n'));
+                    process.exit(0);
+                    return;
+                }
+            }
+    
+            // Loop through each toggle answer and create files/directories accordingly
+            for (const toggle of toggles) {
+                switch (toggle) {
+                    case 'src/':
+                        const srcDir = path.join(process.cwd(), 'src');
+                        await fs.ensureDir(srcDir);
+    
+                        // if --esm is specified, changes the file name to index.mjs, else, keep as index.js
+                        let indexFileName = 'index.js';
+                        if (process.argv.includes('--esm') || process.argv.includes('--ecmascript')) {
+                            indexFileName = 'index.mjs';
+                        }
+    
+                        const indexFile = path.join(srcDir, indexFileName);
+                        await fs.writeFile(indexFile, '', 'utf8');
+    
+                        // updates the main field in package.json
+                        const packageJsonPath = path.join(process.cwd(), 'package.json');
+                        const packageJson = await fs.readJson(packageJsonPath);
+    
+                        // this determines the correct main file based on if --esm is specified
+                        const mainFile = process.argv.includes('--esm') || process.argv.includes('--ecmascript') ? './src/index.mjs' : './src/index.js';
+    
+                        packageJson.main = mainFile;
+    
+                        await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 }); // writes to package.json
+                        break;
+                    case 'test/':
+                        const testDir = path.join(process.cwd(), 'test');
+                        await fs.ensureDir(testDir);
+    
+                        const test = 'example.test.js';
+                        const testFile = path.join(testDir, test);
+                        await fs.writeFile(testFile, '// You should install a testing framework if you are including tests within your package. Some popular ones include:\n\n// Jest: https://jestjs.io/docs/getting-started\n// Mocha: https://mochajs.org/#getting-started\n// Jasmine: https://jasmine.github.io/pages/getting_started.html\n// AVA: https://github.com/avajs/ava?tab=readme-ov-file#usage');
+                        break;
+                    case 'examples/':
+                        const examplesDir = path.join(process.cwd(), 'examples');
+                        await fs.ensureDir(examplesDir);
+                        
+                        // if --esm is present, file extension will be .mjs, else will be .js
+                        const exampleExtension = options.esm ? 'mjs' : 'js';
+                        const exampleFileName = `example.${exampleExtension}`;
+                        
+                        const exampleFile = path.join(examplesDir, exampleFileName);
+                        await fs.writeFile(exampleFile, '// Show an example of how your package is used here.');
+                        break;
+                    case 'docs/':
+                        const docsDir = path.join(process.cwd(), 'docs');
+                        await fs.ensureDir(docsDir);
+    
+                        const exampleDoc = 'example.md';
+                        const docsFile = path.join(docsDir, exampleDoc);
+                        await fs.writeFile(docsFile, `<!-- NOTE: This is a template documentation file. Feel free to modify it according to what your package is. !-->\n\n# ${packageName} Documentation 📚\n\nWelcome to the documentation for the ${packageName} package!\n\nThis documentation houses everything you will need to know about how to use ${packageName} within your own projects.`);
+                        break;
+                    case 'i18n/':
+                        const i18nDir = path.join(process.cwd(), 'i18n');
+                        const localesDir = path.join(i18nDir, 'locales');
+                        await fs.ensureDir(localesDir);
+                        
+                        const defaultLocale = 'en_US';
+                        const localeFilePath = path.join(localesDir, `${defaultLocale}.json`);                    
+                        await fs.writeFile(localeFilePath, '');
+                        break;
+                    case 'assets/':
+                        const assetsDir = path.join(process.cwd(), 'assets');
+                        await fs.ensureDir(assetsDir);
+                        break;
+                    case '.github/workflows':
+                        const workflowsDir = path.join(process.cwd(), '.github', 'workflows');
+                        await fs.ensureDir(workflowsDir);
+    
+                        const workflow = 'workflow.yml';
+                        const workflowFile = path.join(workflowsDir, workflow);
+                        await fs.writeFile(workflowFile, '# You can include any type of workflow here,\n# for example, CI/CD, publishing, making issues stale, and more.\n\n# See the GitHub Workflow docs here: https://docs.github.com/en/actions/using-workflows.');
+                        break;
+                    case '.github/dependabot.yml':
+                        const dependabotDir = path.join(process.cwd(), '.github');
+                        await fs.ensureDir(dependabotDir);
+                        
+                        const dependabot = 'dependabot.yml';
+                        const dependabotFile = path.join(dependabotDir, dependabot);
+                        await fs.writeFile(dependabotFile, 'version: 2\nupdates:\n  - package-ecosystem: "npm"\n    directory: "/"\n    schedule:\n     interval: "daily"', 'utf-8');
+                        break;
+                    case '.gitignore':
+                        // https://github.com/github/gitignore/blob/main/Node.gitignore
+                        const gitignoreURL = 'https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore';
+                        const gitIgnoreResponse = await axios.get(gitignoreURL);
+                        const gitignoreContent = gitIgnoreResponse.data;
+    
+                        const gitignoreFile = path.join(process.cwd(), '.gitignore');
+                        await fs.writeFile(gitignoreFile, gitignoreContent, 'utf8');
+                        break;
+                    case 'README.md':
+                        let importStatement = `const ${packageName} = require('${packageName}');`;
+                        if (options.esm) {
+                            importStatement = `import { ${packageName} } from '${packageName}';`;
+                        }
+                        const readmeContent = `# ${packageName}\n\n${description.userDescription}\n\n# Installation\n\n\`\`\`bash\nnpm install ${packageName}\n\`\`\`\n\n## Usage\n\n\`\`\`javascript\n${importStatement}\n\n// (code goes here)\n// If needed, you can also tweak your import statement, depending on your needs.\n\`\`\``;
+                        const readmeFile = path.join(process.cwd(), 'README.md');
+                        await fs.writeFile(readmeFile, readmeContent, 'utf8');
+                        break;
+                    case 'CONTRIBUTING.md':
+                        const contributingContent = `# Contributing\n\nThank you for considering contributing to this project! Before you do, please read these guidelines.\n\n## Submitting a Pull Request\n\nTo submit a pull request, follow these steps:\n\n1. Fork the repository\n\n2. Clone your forked repository to your local machine\n\n3. Create a new branch for your changes\n\n4. Make your changes\n\n5. Commit your changes to the branch\n\n6. Push your changes to your forked repository\n\n7. Open a pull request on GitHub\n\n<!-- Continue to list more guidelines which are specific to the package you are making. !-->`;
+                        const contributingFile = path.join(process.cwd(), 'CONTRIBUTING.md');
+                        await fs.writeFile(contributingFile, contributingContent, 'utf8');
+                        break;
+                    case 'CHANGELOG.md':
+                        const currentDate = new Date().toISOString().split('T')[0];
+                        const changelogContent = `# Changelog\n\n# v1.0.0 (${currentDate})\n\n* 🎉 Initial commit`;
+                        const changelogFile = path.join(process.cwd(),  'CHANGELOG.md');
+                        await fs.writeFile(changelogFile, changelogContent , 'utf8');
+                        break;
+                    case 'CODE_OF_CONDUCT.md':
+                        // fetch the Covenant Code of Conduct from the official source
+                        // note: coc = Code of Conduct
+                        const cocURL = 'https://www.contributor-covenant.org/version/2/0/code_of_conduct/code_of_conduct.md';
+                        const cocResponse = await axios.get(cocURL);
+                        const cocContent = cocResponse.data;
+                        
+                        const cocFile = path.join(process.cwd(), 'CODE_OF_CONDUCT.md');
+                        await fs.writeFile(cocFile, cocContent, 'utf8');
+                        break;
+                    case 'LICENSE':
+                        try {
+                            // fetch licenses from the GitHub API
+                            const licensesResponse = await axios.get(`${baseURL}`);
+                            const licenses = licensesResponse.data.map(license => ({
+                                label: license.name,
+                                value: license.key,
+                            }));
+                        
+                            // prompt the user to select a license
+                            const selectedLicense = await select({
+                                message: chalk.cyan(`Select a license:`),
+                                options: licenses
+                            });
+                        
+                            // fetch the selected license text
+                            const selectedLicenseResponse = await axios.get(`${baseURL}/${selectedLicense}`);
+                            const selectedLicenseText = selectedLicenseResponse.data.body;
+                        
+                            // write the selected license text to the LICENSE file
+                            const selectedLicenseFilePath = path.join(process.cwd(), 'LICENSE');
+                            await fs.writeFile(selectedLicenseFilePath, selectedLicenseText, 'utf8');
+                        } catch (error) {
+                            consola.error(new Error(chalk.red(`An error occurred when trying to fetch or write the license: ${error}`)));
+                        }
+                        break;
+                    case 'dependencies':
+                        const depNamesPrompt = await text({
+                            message: chalk.cyan(`Enter the name of the ${chalk.magenta('dependencies')} you want to install (comma-separated):`)
+                        });
+                            
+                        const depNames = depNamesPrompt.split(',').map(dep => dep.trim());
+                            
+                        try {
+                            const s = spinner();
+                            s.start(chalk.cyan('Installing dependencies from npm'));
+                            await execa('npm', ['install', ...depNames]);
+                            s.stop(chalk.green('🎉 Installed all dependencies!'));
+                        
+                            // check if --esm flag is present
+                            const isESM = process.argv.includes('--esm') || process.argv.includes('--ecmascript');
+                        
+                            // check if src is selected
+                            const isSrcSelected = toggles.includes('src/');
+                                
+                            if (isSrcSelected) {
+                                const indexFileName = isESM ? 'index.mjs' : 'index.js';
+                                const indexFile = path.join(process.cwd(), 'src', indexFileName);
+                                let indexContent = await fs.readFile(indexFile, 'utf-8');
+                        
+                                // theres no way to tell exactly how the package is called (ie. with modules, if they use {} or not)
+                                // so we just use ${dep} for the name for both parts. the comment is there to warn users about this.
+                                indexContent += `// NOTE: You might need to change these statements based on how the modules of these packages are added.\n//       Make sure you check the documentations for these packages.\n`;
+                                depNames.forEach(dep => {
+                                    const statement = isESM ? `import ${dep} from '${dep}';` : `const ${dep} = require('${dep}');`;
+                                    indexContent += `${statement}\n`;
+                                });
+                        
+                                await fs.writeFile(indexFile, indexContent, 'utf-8');
+                            }
+                        } catch (error) {
+                            consola.error(new Error(chalk.red(`An error occurred when trying to install dependencies: ${error}`)));
+                        }
+                        break;
+                }
+            }
+    
+            outro(`${chalk.green(`✨ You're all set! The structure for ${chalk.green.bold(packageName)} has been created successfully.`)}`);
+        } catch (err) {
+            consola.error(new Error(chalk.red(`An error occurred when trying to create the structure of your package: ${err}`)));
+        }
     }
-}
 
 program
     .command('pkg-config')
