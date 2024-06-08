@@ -64,7 +64,8 @@ program
                     { value: 'CONTRIBUTING.md', label: 'Contributing guidelines' },
                     { value: 'CHANGELOG.md', label: 'Changelog' },
                     { value: 'CODE_OF_CONDUCT.md', label: 'Code of Conduct' },
-                    { value: 'LICENSE', label: 'License', hint: 'Recommended' }
+                    { value: 'LICENSE', label: 'License', hint: 'Recommended' },
+                    { value: 'dependencies', label: 'Dependencies', hint: 'Select to install dependencies' }
                 ],
                 required: true,
             });
@@ -262,6 +263,18 @@ async function createPkgStructure(packageName, description, options, toggles) {
                         consola.error(new Error(chalk.red(`An error occurred when trying to fetch or write the license: ${error}`)));
                     }
                     break;
+                case 'dependencies':
+                    const depNamesPrompt = await text({
+                        message: chalk.cyan(`Enter the name of the ${chalk.magenta('dependencies')} you want to install (comma-seperated):`)
+                    })
+
+                    const depNames = depNamesPrompt.split(',').map(dep => dep.trim());
+
+                    try {
+                        await execa('npm', ['install', ...depNames]);
+                    } catch (error) {
+                        consola.error(new Error(chalk.red(`An error occurred when trying to install dependencies: ${error}`)));
+                    }
                 default:
                     break;
                 }
