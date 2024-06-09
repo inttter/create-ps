@@ -20,7 +20,7 @@
 
 ## Why?
 
-**It saves time.** I don't want to repeatedly create new files that I know I'm going to want to make every time I want to make a new package. Toggling which files I want and don't want makes this faster than manually creating the files and folders.
+**It saves time.** I don't want to repeatedly create new files that I know I might possibly want to make every time I want to make a new package. Toggling which files I want and don't want makes this faster than manually creating the files and folders.
 
 ## Installation
 
@@ -28,17 +28,16 @@
 npm install -g create-ps
 ```
 
-## Getting Started
+## Usage
 
-> [!TIP]
-> To create a .mjs (ESM/EcmaScript) file and use `import` statements, run the command with the **`--esm`** flag.
+**create-ps** handles the creation of files and folders and their contents behind the scenes using switch cases. By default, packages are setup to use ESM.
+
+> [!NOTE]
+> If you want to use **CommonJS**, use the `--cjs` option instead.
 
 * Navigate to the directory you are going to create your package in.
-
-* Run `cps <packageName>` in the working directory of the package folder,
-replacing `<packageName>` with the name of your package.
-
-* Select which files you'd like to include and exclude.
+* Run `cps [packageName]` in the working directory. Make sure to replace `[packageName]` with the name of your package.
+* Select which files you'd like to include and exclude, and follow any extra prompts given in the terminal.
 
 ## Commands
 
@@ -49,4 +48,4 @@ replacing `<packageName>` with the name of your package.
 
 ## License
 
-©️ `2024` · Licensed under the MIT License. See [here](https://github.com/inttter/create-ps/blob/main/LICENSE) for more information.
+©️ **2024** · Licensed under the MIT License. See [here](https://github.com/inttter/create-ps/blob/main/LICENSE) for more information.
