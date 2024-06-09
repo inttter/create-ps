@@ -308,7 +308,8 @@ program
                                 // so we just use ${dep} for the name for both parts. the comment is there to warn users about this.
                                 indexContent += `// NOTE: You might need to change these statements based on how the modules of these packages are added.\n//       Make sure you check the documentations for these packages.\n//       To run this script, run 'node src/${indexFileName}'\n`;
                                 depNames.forEach(dep => {
-                                    const statement = isCJS ? `const ${dep} = require('${dep}');` : `import ${dep} from '${dep}';`;
+                                    const depName = dep.replace(/@.*/, '');
+                                    const statement = isCJS ? `const ${depName} = require('${depName}');` : `import ${depName} from '${depName}';`;
                                     indexContent += `${statement}\n`;
                                 });
                         
