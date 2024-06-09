@@ -15,13 +15,18 @@ const baseURL = 'https://api.github.com/licenses';
 
 program
     .name('cps')
-    .description('create-ps is a CLI tool which helps you to create the foundations for an NPM package,')
-    .arguments('<packageName>')
-    .option('--esm', 'use ESM files and syntax')
+    .description('create-ps is a CLI tool which helps you to create the foundations for an NPM package.')
+    .arguments('[packageName]')
+    .option('--cjs', 'use CommonJS instead')
     .action(async (packageName, options) => {
         try {
             // runs npm init -y
             await execa('npm', ['init', '-y']);
+
+            // warn user if they use commonjs that they should probably use esm instead
+            if (options.cjs) {
+                console.log(chalk.dim(`\n${chalk.yellow('WARNING:')} You are using CommonJS. It\'s reccomended to use ESM instead.\nTo use ESM with create-ps, remove the '--cjs' option.\nRead more: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c`))
+            }
 
             console.log();
             intro(`${chalk.bgCyan(chalk.black(' create-ps '))}`);
@@ -44,6 +49,12 @@ program
             // generated when running npm init -y with create-ps
             // https://docs.npmjs.com/cli/v10/configuring-npm/package-json#directories
             delete packageJson.directories;
+
+            // taken from: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
+            if (!options.cjs) {
+                packageJson.type = 'module';
+                packageJson.engines = { node: '>=18' };
+            }
 
             // write the updated package.json back to file
             await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
@@ -122,10 +133,10 @@ program
                         const srcDir = path.join(process.cwd(), 'src');
                         await fs.ensureDir(srcDir);
     
-                        // if --esm is specified, changes the file name to index.mjs, else, keep as index.js
-                        let indexFileName = 'index.js';
-                        if (process.argv.includes('--esm') || process.argv.includes('--ecmascript')) {
-                            indexFileName = 'index.mjs';
+                        // if --cjs is specified, changes the file name to index.js, else, keep as index.mjs
+                        let indexFileName = 'index.mjs';
+                        if (process.argv.includes('--cjs')) {
+                            indexFileName = 'index.js';
                         }
     
                         const indexFile = path.join(srcDir, indexFileName);
@@ -135,11 +146,17 @@ program
                         const packageJsonPath = path.join(process.cwd(), 'package.json');
                         const packageJson = await fs.readJson(packageJsonPath);
     
-                        // this determines the correct main file based on if --esm is specified
-                        const mainFile = process.argv.includes('--esm') || process.argv.includes('--ecmascript') ? './src/index.mjs' : './src/index.js';
-    
-                        packageJson.main = mainFile;
-    
+                        // this determines the correct main file based on if --cjs is specified
+                        const mainFile = process.argv.includes('--cjs') ? './src/index.js' : './src/index.mjs';
+
+                        if (options.cjs) {
+                            packageJson.main = mainFile;
+                            delete packageJson.exports;
+                        } else {
+                            packageJson.exports = `./src/${indexFileName}`;
+                            delete packageJson.main;
+                        }
+        
                         await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 }); // writes to package.json
                         break;
                     case 'test/':
@@ -154,8 +171,8 @@ program
                         const examplesDir = path.join(process.cwd(), 'examples');
                         await fs.ensureDir(examplesDir);
                         
-                        // if --esm is present, file extension will be .mjs, else will be .js
-                        const exampleExtension = options.esm ? 'mjs' : 'js';
+                        // if --cjs is present, file extension will be .js, else will be .mjs
+                        const exampleExtension = options.cjs ? 'js' : 'mjs';
                         const exampleFileName = `example.${exampleExtension}`;
                         
                         const exampleFile = path.join(examplesDir, exampleFileName);
@@ -208,9 +225,9 @@ program
                         await fs.writeFile(gitignoreFile, gitignoreContent, 'utf8');
                         break;
                     case 'README.md':
-                        let importStatement = `const ${packageName} = require('${packageName}');`;
-                        if (options.esm) {
-                            importStatement = `import { ${packageName} } from '${packageName}';`;
+                        let importStatement = `import { ${packageName} } from '${packageName}';`;
+                        if (options.cjs) {
+                            importStatement = `const ${packageName} = require('${packageName}');`;
                         }
                         const readmeContent = `# ${packageName}\n\n${description.userDescription}\n\n# Installation\n\n\`\`\`bash\nnpm install ${packageName}\n\`\`\`\n\n## Usage\n\n\`\`\`javascript\n${importStatement}\n\n// (code goes here)\n// If needed, you can also tweak your import statement, depending on your needs.\n\`\`\``;
                         const readmeFile = path.join(process.cwd(), 'README.md');
@@ -276,22 +293,22 @@ program
                             await execa('npm', ['install', ...depNames]);
                             s.stop(chalk.green('🎉 Installed all dependencies!'));
                         
-                            // check if --esm flag is present
-                            const isESM = process.argv.includes('--esm') || process.argv.includes('--ecmascript');
+                            // check if --cjs flag is present
+                            const isCJS = process.argv.includes('--cjs');
                         
                             // check if src is selected
                             const isSrcSelected = toggles.includes('src/');
                                 
                             if (isSrcSelected) {
-                                const indexFileName = isESM ? 'index.mjs' : 'index.js';
+                                const indexFileName = isCJS ? 'index.js' : 'index.mjs';
                                 const indexFile = path.join(process.cwd(), 'src', indexFileName);
                                 let indexContent = await fs.readFile(indexFile, 'utf-8');
                         
                                 // theres no way to tell exactly how the package is called (ie. with modules, if they use {} or not)
                                 // so we just use ${dep} for the name for both parts. the comment is there to warn users about this.
-                                indexContent += `// NOTE: You might need to change these statements based on how the modules of these packages are added.\n//       Make sure you check the documentations for these packages.\n`;
+                                indexContent += `// NOTE: You might need to change these statements based on how the modules of these packages are added.\n//       Make sure you check the documentations for these packages.\n//       To run this script, run 'node src/${indexFileName}'\n`;
                                 depNames.forEach(dep => {
-                                    const statement = isESM ? `import ${dep} from '${dep}';` : `const ${dep} = require('${dep}');`;
+                                    const statement = isCJS ? `const ${dep} = require('${dep}');` : `import ${dep} from '${dep}';`;
                                     indexContent += `${statement}\n`;
                                 });
                         
