@@ -203,9 +203,11 @@ program
                         const workflowsDir = path.join(process.cwd(), '.github', 'workflows');
                         await fs.ensureDir(workflowsDir);
     
+                        // example workflow file gets created here, bare in mind it is
+                        // quite long because it's a fully fledged workflow used as an example.
                         const workflow = 'workflow.yml';
                         const workflowFile = path.join(workflowsDir, workflow);
-                        await fs.writeFile(workflowFile, '# You can include any type of workflow here,\n# for example, CI/CD, publishing, making issues stale, and more.\n\n# See the GitHub Workflow docs here: https://docs.github.com/en/actions/using-workflows.');
+                        await fs.writeFile(workflowFile, '# This is an example workflow that simply runs npm test on Node 18 and 20. Change this however you would like.\n\nname: Example Workflow\n\non:\n  push:\n    branches:\n      - main\n  pull_request:\n    branches:\n      - main\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n\n    strategy:\n      matrix:\n        node-version: [18, 20]\n\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Set up Node.js\n        uses: actions/setup-node@v4\n        with:\n          node-version: \${{ matrix.node-version }}\n\n      - name: Install dependencies\n        run: npm ci\n\n      - name: Run tests\n        run: npm test\n');
                         break;
                     case '.github/dependabot.yml':
                         const dependabotDir = path.join(process.cwd(), '.github');
