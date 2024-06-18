@@ -270,8 +270,15 @@ program
                             });
                         
                             // fetch the selected license text
-                            const selectedLicenseResponse = await axios.get(`${baseURL}/${selectedLicense}`);
-                            const selectedLicenseText = selectedLicenseResponse.data.body;
+                            let selectedLicenseResponse = await axios.get(`${baseURL}/${selectedLicense}`);
+                            let selectedLicenseText = selectedLicenseResponse.data.body;
+
+                            // replace [name] and [fullname] fields with git user name and current year
+                            const fullname = gitUserName();
+                            const currentYear = new Date().getFullYear();
+                            selectedLicenseText = selectedLicenseText
+                                .replace('[year]', currentYear)
+                                .replace('[fullname]', fullname);
                         
                             // write the selected license text to the LICENSE file
                             const selectedLicenseFilePath = path.join(process.cwd(), 'LICENSE');
