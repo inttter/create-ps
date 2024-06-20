@@ -94,6 +94,9 @@ program
         }
     });
 
+    let selectedLicenseName = '';
+    let readmeContent = '';
+
     async function createPkgStructure(packageName, description, options, toggles) {
         try {
             // Check for existing files
@@ -106,19 +109,19 @@ program
                 }
             }
     
-            // Warning message which lists what may be overwritten
+            // warning message which lists what files may be overwritten
             if (existingFiles.length > 0) {
                 console.log();
                 consola.warn(chalk.yellow('The following files already exist and may be overwritten:'));
                 existingFiles.forEach(file => console.log(chalk.yellow(`• ${file}`)));
                 console.log();
                 
-                // Prompt for if they'd like to continue despite existing files
+                // prompt for if they'd like to continue despite existing files
                 const continueCreation = await confirm({
                     message: chalk.cyan('Would you like to continue anyway?'),
                 });
                 
-                // When user selects 'N'
+                // when user selects 'N'
                 if (!continueCreation) {
                     console.log(chalk.red('\n❌ Package creation aborted.\n'));
                     process.exit(0);
@@ -126,7 +129,7 @@ program
                 }
             }
     
-            // Loop through each toggle answer and create files/directories accordingly
+            // loop through each toggle answer and create files/directories accordingly
             for (const toggle of toggles) {
                 switch (toggle) {
                     case 'src/':
@@ -181,10 +184,15 @@ program
                     case 'docs/':
                         const docsDir = path.join(process.cwd(), 'docs');
                         await fs.ensureDir(docsDir);
+
+                        const docsURL = 'https://gist.githubusercontent.com/inttter/6ae09a5d578746239c8983326ce6f1e0/raw/23eba517b3924c09eab82ecd005d1a72a5c380bb/example.md';
+                        const docsResponse = await axios.get(docsURL);
+                        let docsContent = docsResponse.data;
+                        docsContent = docsContent.replace(/\[Project Name\]/g, packageName);
     
                         const exampleDoc = 'example.md';
                         const docsFile = path.join(docsDir, exampleDoc);
-                        await fs.writeFile(docsFile, `<!-- NOTE: This is a template documentation file. Feel free to modify it according to what your package is. !-->\n\n# ${packageName} Documentation 📚\n\nWelcome to the documentation for the ${packageName} package!\n\nThis documentation houses everything you will need to know about how to use ${packageName} within your own projects.`);
+                        await fs.writeFile(docsFile, docsContent);
                         break;
                     case 'i18n/':
                         const i18nDir = path.join(process.cwd(), 'i18n');
@@ -202,12 +210,14 @@ program
                     case '.github/workflows':
                         const workflowsDir = path.join(process.cwd(), '.github', 'workflows');
                         await fs.ensureDir(workflowsDir);
+
+                        const workflowURL = 'https://gist.githubusercontent.com/inttter/f8c8a0286cf8e79645965d99694a412f/raw/e1fbd2d3a8c5904225f2c54738dfa1e39b3cbc1f/workflow.yml';
+                        const workflowResponse = await axios.get(workflowURL);
+                        const workflowContent = workflowResponse.data;
     
-                        // example workflow file gets created here, bare in mind it is
-                        // quite long because it's a fully fledged workflow used as an example.
                         const workflow = 'workflow.yml';
                         const workflowFile = path.join(workflowsDir, workflow);
-                        await fs.writeFile(workflowFile, '# This is an example workflow that simply runs npm test on Node 18 and 20. Change this however you would like.\n\nname: Example Workflow\n\non:\n  push:\n    branches:\n      - main\n  pull_request:\n    branches:\n      - main\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n\n    strategy:\n      matrix:\n        node-version: [18, 20]\n\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Set up Node.js\n        uses: actions/setup-node@v4\n        with:\n          node-version: \${{ matrix.node-version }}\n\n      - name: Install dependencies\n        run: npm ci\n\n      - name: Run tests\n        run: npm test\n');
+                        await fs.writeFile(workflowFile, workflowContent);
                         break;
                     case '.github/dependabot.yml':
                         const dependabotDir = path.join(process.cwd(), '.github');
@@ -227,16 +237,30 @@ program
                         await fs.writeFile(gitignoreFile, gitignoreContent, 'utf8');
                         break;
                     case 'README.md':
-                        let importStatement = `import { ${packageName} } from '${packageName}';`;
+                        let importStatement = `import ${packageName} from '${packageName}';`;
                         if (options.cjs) {
                             importStatement = `const ${packageName} = require('${packageName}');`;
                         }
-                        const readmeContent = `# ${packageName}\n\n${description.userDescription}\n\n# Installation\n\n\`\`\`bash\nnpm install ${packageName}\n\`\`\`\n\n## Usage\n\n\`\`\`javascript\n${importStatement}\n\n// (code goes here)\n// If needed, you can also tweak your import statement, depending on your needs.\n\`\`\``;
+                        
+                        // due to the amount of content being replaced here, i think its not smart
+                        // to grab the content from a gist then try to replace it (in case i mess something up)
+                        readmeContent = `# ${packageName}\n\n${description.userDescription}\n\n# Installation\n\nInstall this package to use in your project using the following command:\n\n\`\`\`bash\nnpm install ${packageName}\n\`\`\`\n\n## Usage\n\n\`\`\`javascript\n${importStatement}\n\n// Your example code will go here, below the import statement.\n\`\`\``;
+
+                        // if the CONTRIBUTING.md file gets added, then append this to the README
+                        if (toggles.includes('CONTRIBUTING.md')) {
+                            readmeContent += `\n\n# Contributing\n\nWe welcome all contributions! If you would like to make a contribution, please see the [contributing guidelines](CONTRIBUTING.md) for more information.`;
+                        }
+
                         const readmeFile = path.join(process.cwd(), 'README.md');
                         await fs.writeFile(readmeFile, readmeContent, 'utf8');
                         break;
                     case 'CONTRIBUTING.md':
-                        const contributingContent = `# Contributing\n\nThank you for considering contributing to this project! Before you do, please read these guidelines.\n\n## Submitting a Pull Request\n\nTo submit a pull request, follow these steps:\n\n1. Fork the repository\n\n2. Clone your forked repository to your local machine\n\n3. Create a new branch for your changes\n\n4. Make your changes\n\n5. Commit your changes to the branch\n\n6. Push your changes to your forked repository\n\n7. Open a pull request on GitHub\n\n<!-- Continue to list more guidelines which are specific to the package you are making. !-->`;
+                        // fetches a template contributing guidelines template from a gist
+                        const contributingURL = 'https://gist.githubusercontent.com/inttter/5c691a422c64804c02931da965a17400/raw/171b812879339b4a6758002c2665172fcff070cd/CONTRIBUTING.md';
+                        const contributingResponse = await axios.get(contributingURL);
+                        let contributingContent = contributingResponse.data;
+                        contributingContent = contributingContent.replace(/\[Project Name\]/g, packageName);
+                        
                         const contributingFile = path.join(process.cwd(), 'CONTRIBUTING.md');
                         await fs.writeFile(contributingFile, contributingContent, 'utf8');
                         break;
@@ -247,8 +271,7 @@ program
                         await fs.writeFile(changelogFile, changelogContent , 'utf8');
                         break;
                     case 'CODE_OF_CONDUCT.md':
-                        // fetch the Covenant Code of Conduct from the official source
-                        // note: coc = Code of Conduct
+                        // fetches the Covenant Code of Conduct from the official source
                         const cocURL = 'https://www.contributor-covenant.org/version/2/0/code_of_conduct/code_of_conduct.md';
                         const cocResponse = await axios.get(cocURL);
                         const cocContent = cocResponse.data;
@@ -270,12 +293,14 @@ program
                                 message: chalk.cyan(`Select a license:`),
                                 options: licenses
                             });
+
+                            selectedLicenseName = licenses.find(license => license.value === selectedLicense).label;
                         
-                            // fetch the selected license text
+                            // fetches the selected license text
                             let selectedLicenseResponse = await axios.get(`${baseURL}/${selectedLicense}`);
                             let selectedLicenseText = selectedLicenseResponse.data.body;
 
-                            // replace [name] and [fullname] fields with git user name and current year
+                            // replaces [name] and [fullname] fields with git user name and current year
                             const fullname = gitUserName();
                             const currentYear = new Date().getFullYear();
                             selectedLicenseText = selectedLicenseText
@@ -285,13 +310,19 @@ program
                             // write the selected license text to the LICENSE file
                             const selectedLicenseFilePath = path.join(process.cwd(), 'LICENSE');
                             await fs.writeFile(selectedLicenseFilePath, selectedLicenseText, 'utf8');
+
+                            if (readmeContent) {
+                                readmeContent += `\n\n# License\n\nThis project is licensed under the [${selectedLicenseName}](LICENSE).`;
+                                const readmeFile = path.join(process.cwd(), 'README.md');
+                                await fs.writeFile(readmeFile, readmeContent, 'utf8');
+                            }
                         } catch (error) {
                             consola.error(new Error(chalk.red(`An error occurred when trying to fetch or write the license: ${error}`)));
                         }
                         break;
                     case 'dependencies':
                         const depNamesPrompt = await text({
-                            message: chalk.cyan(`Enter the name of the ${chalk.magenta('dependencies')} you want to install (comma-separated):`)
+                            message: chalk.cyan(`Enter the name of the dependencies you want to install (comma-separated):`)
                         });
                             
                         const depNames = depNamesPrompt.split(',').map(dep => dep.trim());
