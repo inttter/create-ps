@@ -100,20 +100,23 @@ program
     async function createPkgStructure(packageName, description, options, toggles) {
         try {
             // Check for existing files
-            const existingFiles = [];
+            const existingItems = [];
             for (const toggle of toggles) {
                 const filePath = path.join(process.cwd(), toggle);
                 const exists = await fs.pathExists(filePath);
-                if (exists && (await fs.stat(filePath)).isFile()) {
-                    existingFiles.push(filePath);
+                if (exists) {
+                    const stats = await fs.stat(filePath);
+                    if (stats.isFile() || stats.isDirectory()) {
+                        existingItems.push(filePath);
+                   }
                 }
             }
     
             // warning message which lists what files may be overwritten
-            if (existingFiles.length > 0) {
+            if (existingItems.length > 0) {
                 console.log();
-                consola.warn(chalk.yellow('The following files already exist and may be overwritten:'));
-                existingFiles.forEach(file => console.log(chalk.yellow(`• ${file}`)));
+                consola.warn(chalk.yellow('The following will be overwritten with default content:'));
+                existingItems.forEach(item => console.log(chalk.yellow(`• ${item}`)));
                 console.log();
                 
                 // prompt for if they'd like to continue despite existing files
