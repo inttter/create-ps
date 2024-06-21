@@ -8,10 +8,17 @@ import { execa } from 'execa';
 import axios from 'axios';
 import gitUserName from 'git-user-name';
 import { consola } from 'consola'
-import { intro, multiselect, select, confirm, text, outro, spinner } from '@clack/prompts';
+import { intro, multiselect, select, confirm, text, outro, spinner, cancel, isCancel } from '@clack/prompts';
 
 // api to fetch licenses from. used for the license switch case
 const baseURL = 'https://api.github.com/licenses';
+
+async function checkCancellation(input, cancelMessage = 'Cancelled because `CTRL+C` was pressed.') {
+    if (isCancel(input)) {
+      cancel(cancelMessage);
+      process.exit(0);
+    }
+  }
 
 program
     .name('cps')
@@ -37,6 +44,8 @@ program
             description.userDescription = await text({
                 message: chalk.cyan(`Enter a ${chalk.magenta('short description')} of the package:`)
             });
+
+            await checkCancellation(description.userDescription);
             
             // update package.json with the provided description
             const packageJsonPath = path.join(process.cwd(), 'package.json');
@@ -81,6 +90,7 @@ program
                 required: true,
             });
 
+            await checkCancellation(toggles);
             await createPkgStructure(packageName, description, options, toggles);
 
             // start a git repo by default by running 'git init'
@@ -123,6 +133,8 @@ program
                 const continueCreation = await confirm({
                     message: chalk.cyan('Would you like to continue anyway?'),
                 });
+
+                await checkCancellation(continueCreation);
                 
                 // when user selects 'N'
                 if (!continueCreation) {
@@ -297,6 +309,8 @@ program
                                 options: licenses
                             });
 
+                            await checkCancellation(selectedLicense);
+
                             selectedLicenseName = licenses.find(license => license.value === selectedLicense).label;
                         
                             // fetches the selected license text
@@ -327,6 +341,8 @@ program
                         const depNamesPrompt = await text({
                             message: chalk.cyan(`Enter the name of the dependencies you want to install (comma-separated):`)
                         });
+
+                        await checkCancellation(depNamesPrompt);
                             
                         const depNames = depNamesPrompt.split(',').map(dep => dep.trim());
                             
@@ -391,6 +407,8 @@ program
                 ]
             });
 
+            await checkCancellation(toggles);
+
             const responses = {};
 
             // check for valid urls
@@ -410,6 +428,8 @@ program
                 });
             }
 
+            await checkCancellation(responses.author);
+
             if (toggles.includes('Repository')) {
                 responses.repository = await text({
                     message: chalk.cyan(`Enter a ${chalk.magenta('repository URL')}:`),
@@ -422,12 +442,16 @@ program
                 });
             }
 
+            await checkCancellation(responses.repository);
+
             if (toggles.includes('Keywords')) {
                 const keywordsInput = await text({
                     message: chalk.cyan(`Enter some ${chalk.magenta('keywords')} (comma-separated):`),
                 });
+                await checkCancellation(keywordsInput);
                 responses.keywords = keywordsInput.split(',').map(keyword => keyword.trim());
             }
+            
 
             if (toggles.includes('Homepage')) {
                 responses.homepage = await text({
@@ -441,10 +465,14 @@ program
                 });
             }
 
+            await checkCancellation(responses.homepage);
+
             if (toggles.includes('Funding')) {
                 let fundingType = await text({
                     message: chalk.cyan(`Enter the ${chalk.magenta('funding type')} you want to use:`),
                 });
+
+                await checkCancellation(fundingType);
 
                 // if user enters nothing, it will default to individual
                 if (!fundingType) {
@@ -452,7 +480,7 @@ program
                     console.log(chalk.yellow(`   ⚠️  No funding type specified. Defaulting to 'individual'...`));
                 }
             
-                const fundingUrl = await text({
+                const fundingURL = await text({
                     message: chalk.cyan(`Enter the ${chalk.magenta('funding URL')}:`),
                     validate: input => {
                         if (!isValidURL(input)) {
@@ -462,7 +490,9 @@ program
                     }
                 });
 
-                const funding = { type: fundingType, url: fundingUrl };
+                await checkCancellation(fundingURL);
+
+                const funding = { type: fundingType, url: fundingURL };
                 responses.funding = funding;
             }
 
@@ -471,6 +501,8 @@ program
                     message: chalk.cyan(`Enter the ${chalk.magenta('license')} you wish to use:`),
                 });
             }
+
+            await checkCancellation(responses.license);
 
             const updatedPackageJson = { ...packageJson, ...responses };
             await fs.writeJson(packageJsonPath, updatedPackageJson, { spaces: 2 });
