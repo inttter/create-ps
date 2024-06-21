@@ -13,12 +13,13 @@ import { intro, multiselect, select, confirm, text, outro, spinner, cancel, isCa
 // api to fetch licenses from. used for the license switch case
 const baseURL = 'https://api.github.com/licenses';
 
+// allow exiting prompts with `CTRL+C`
 async function checkCancellation(input, cancelMessage = 'Cancelled because `CTRL+C` was pressed.') {
     if (isCancel(input)) {
-      cancel(cancelMessage);
-      process.exit(0);
+        cancel(cancelMessage);
+        process.exit(0);
     }
-  }
+}
 
 program
     .name('cps')
@@ -32,7 +33,7 @@ program
 
             // warn user if they use commonjs that they should probably use esm instead
             if (options.cjs) {
-                console.log(chalk.dim(`\n${chalk.yellow('WARNING:')} You are using CommonJS. It\'s reccomended to use ESM instead.\nTo use ESM with create-ps, remove the '--cjs' option.\nRead more: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c`))
+                consola.warn(chalk.gray(`${chalk.yellow('You are creating a package using CommonJS (CJS).')}\n\nIt is recommended to use EcmaScript (ESM) instead to guarantee the longevity of your package in the future.\nTo use ESM with create-ps, remove the ${chalk.magenta('`--cjs`')} option from the command you just ran.\n\nRead more: ${chalk.magenta('https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c')}`));
             }
 
             console.log();
@@ -125,7 +126,7 @@ program
             // warning message which lists what files may be overwritten
             if (existingItems.length > 0) {
                 console.log();
-                consola.warn(chalk.yellow('The following will be overwritten with default content:'));
+                consola.warn(chalk.yellow('The following file paths will be overwritten with default content:'));
                 existingItems.forEach(item => console.log(chalk.yellow(`• ${item}`)));
                 console.log();
                 
@@ -507,7 +508,7 @@ program
             const updatedPackageJson = { ...packageJson, ...responses };
             await fs.writeJson(packageJsonPath, updatedPackageJson, { spaces: 2 });
 
-            // run npm pkg fix here to properly format the "repository" field and make it correct
+            // run npm pkg fix here to properly fix any lingering mistakes
             await execa('npm', ['pkg', 'fix']);
 
             outro(`${chalk.green(`Your ${chalk.green.bold('package.json')} has been updated successfully!`)}`);
