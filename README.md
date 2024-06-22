@@ -1,6 +1,6 @@
 # create-ps
 
-**create-ps** is a CLI tool which helps you to create the foundations for an NPM package, saving you time from creating new files and folders.
+**create-ps** is a CLI tool which helps you to create the foundations for an `npm` package, saving you time from creating new files and folders.
 
 [![NPM Weekly Downloads](https://img.shields.io/npm/dw/create-ps.svg?style=flat&colorA=black&colorB=blue)](https://npmjs.org/package/create-ps)
 [![NPM version](https://img.shields.io/npm/v/create-ps.svg?style=flat&colorA=black)](https://www.npmjs.com/package/create-ps)
@@ -15,12 +15,7 @@
 
 <br>
 
-> You can view a video demo of running create-ps [here](http://files.iinter.me/r/create-ps_Demo.mp4).
-
-
-## Why?
-
-**It saves time.** I don't want to repeatedly create new files that I know I might possibly want to make every time I want to make a new package. Toggling which files I want and don't want makes this faster than manually creating the files and folders.
+> You can view a demo of create-ps [here](https://files.iinter.me/r/create-ps_Demo_v4.mp4).
 
 ## Installation
 
@@ -30,22 +25,27 @@ npm install -g create-ps
 
 ## Usage
 
-**create-ps** handles the creation of files and folders and their contents behind the scenes using switch cases. By default, packages are setup to use ESM.
+Navigate to your working directory and run the following command:
 
-> [!NOTE]
-> If you want to use **CommonJS**, use the `--cjs` option instead.
+```bash
+cps [packageName]
+```
+> [!NOTE] 
+> By default, packages are set up to use EcmaScript (ESM). To use CommonJS (CJS), run the command with the `--cjs` option instead.
 
-* Navigate to the directory you are going to create your package in.
-* Run `cps [packageName]` in the working directory. Make sure to replace `[packageName]` with the name of your package.
-* Select which files you'd like to include and exclude, and follow any extra prompts given in the terminal.
+Make sure to replace `[packageName]` with the name of your package. Once the command is ran, select which files/directories you would like to include and fill out any prompts.
 
-## Commands
+## Configuring your package.json
 
-|   Command      |    Description    |     Aliases      | 
-|----------|-----------|---------------------------|
-`cps pkg-config` | Adds/customises different fields in your `package.json`. For the license field, see [here](https://spdx.org/licenses/) for correct identifiers. You can also configure existing an existing `package.json`. | N/A | 
+You can also configure any new or pre-existing `package.json` with various information about the package by running the following command:
+
+```bash
+cps pkg-config
+```
+
+View more descriptive information and an exampls of this command [here](https://iinter.me/writing/creating-packages#pkg-config).
 
 
 ## License
 
-©️ **2024** · Licensed under the MIT License. See [here](https://github.com/inttter/create-ps/blob/main/LICENSE) for more information.
+©️ **2024** · Licensed under the [MIT License](LICENSE).
