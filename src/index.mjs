@@ -267,6 +267,12 @@ program
                             readmeContent += `\n\n# Contributing\n\nWe welcome all contributions! If you would like to make a contribution, please see the [contributing guidelines](CONTRIBUTING.md) for more information.`;
                         }
 
+                        // if the LICENSE file gets added, then append this to the README,
+                        // along with the license name (defined as `selectedLicenseName`) 
+                        if (toggles.includes('LICENSE') && selectedLicenseName) {
+                            readmeContent += `\n\n# License\n\nThis project is licensed under the [${selectedLicenseName}](LICENSE).`;
+                        }
+
                         const readmeFile = path.join(process.cwd(), 'README.md');
                         await fs.writeFile(readmeFile, readmeContent, 'utf8');
                         break;
@@ -328,12 +334,6 @@ program
                             // write the selected license text to the LICENSE file
                             const selectedLicenseFilePath = path.join(process.cwd(), 'LICENSE');
                             await fs.writeFile(selectedLicenseFilePath, selectedLicenseText, 'utf8');
-
-                            if (readmeContent) {
-                                readmeContent += `\n\n# License\n\nThis project is licensed under the [${selectedLicenseName}](LICENSE).`;
-                                const readmeFile = path.join(process.cwd(), 'README.md');
-                                await fs.writeFile(readmeFile, readmeContent, 'utf8');
-                            }
                         } catch (error) {
                             consola.error(new Error(chalk.red(`An error occurred when trying to fetch or write the license: ${error}`)));
                         }
