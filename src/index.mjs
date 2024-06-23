@@ -302,7 +302,7 @@ program
                         await fs.writeFile(cocFile, cocContent, 'utf8');
                         break;
                     case 'LICENSE':
-                        try {
+                        try {                            
                             // fetch licenses from the GitHub API
                             const licensesResponse = await axios.get(`${baseURL}`);
                             const licenses = licensesResponse.data.map(license => ({
@@ -382,7 +382,7 @@ program
                 }
             }
     
-            outro(`${chalk.green(`✨ You're all set! The structure for ${chalk.green.bold(packageName)} has been created successfully.`)}`);
+            outro(chalk.green(`✨ You're all set! The structure for ${chalk.green.bold(packageName)} has been created successfully.`));
         } catch (err) {
             consola.error(new Error(chalk.red(`An error occurred when trying to create the structure of your package: ${err}`)));
         }
@@ -508,10 +508,17 @@ program
             const updatedPackageJson = { ...packageJson, ...responses };
             await fs.writeJson(packageJsonPath, updatedPackageJson, { spaces: 2 });
 
+            // `npm pkg fix` takes a few seconds to run sometimes so
+            // this adds a spinner to notify the user
+            const s = spinner();
+            s.start(chalk.cyan('Running `npm pkg fix` to fix any issues'));
+
             // run npm pkg fix here to properly fix any lingering mistakes
             await execa('npm', ['pkg', 'fix']);
 
-            outro(`${chalk.green(`Your ${chalk.green.bold('package.json')} has been updated successfully!`)}`);
+            s.stop(chalk.green('🎉 `npm pkg fix` was ran successfully!'));
+
+            outro(chalk.green(`Your ${chalk.green.bold('package.json')} has been updated successfully!`));
         } catch (err) {
             consola.error(new Error(chalk.red(`An error occurred when trying to update your ${chalk.magenta('package.json')}: ${err}`)));
         }
