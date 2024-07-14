@@ -438,6 +438,7 @@ program
         try {
             const packageJsonPath = path.join(process.cwd(), 'package.json');
             const packageJson = await fs.readJson(packageJsonPath);
+            const packageName = packageJson.name;
 
             const toggles = await multiselect({
                 message: chalk.cyan('Select what you\'d like to include:'),
@@ -561,7 +562,7 @@ program
 
             s.stop(chalk.green('🎉 `npm pkg fix` was ran successfully!'));
 
-            outro(chalk.green(`Your ${chalk.green.bold('package.json')} has been updated successfully!`));
+            outro(chalk.green(`✨ Your all set! The ${chalk.green.bold('package.json')} for ${chalk.green.bold(packageName)} has been updated successfully.`));
         } catch (err) {
             consola.error(new Error(chalk.red(`An error occurred when trying to update your ${chalk.magenta('package.json')}: ${err}`)));
         }
