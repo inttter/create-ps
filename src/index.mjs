@@ -55,8 +55,8 @@ program
             packageJson.description = description.userDescription;
             packageJson.name = packageName
             
-            // remove optional "directories" field from package.json which for some reason gets
-            // generated when running npm init -y with create-ps
+            // remove optional "directories" field from package.json which
+            // for some reason generated when running npm init -y with create-ps
             // https://docs.npmjs.com/cli/v10/configuring-npm/package-json#directories
             delete packageJson.directories;
 
@@ -123,27 +123,25 @@ program
                 }
             }
     
-            // warning message which lists what files may be overwritten
-            if (existingItems.length > 0) {
-                console.log();
-                consola.warn(chalk.yellow('The following file paths will be overwritten with default content:'));
-                existingItems.forEach(item => console.log(chalk.yellow(`• ${item}`)));
-                console.log();
-                
-                // prompt for if they'd like to continue despite existing files
-                const continueCreation = await confirm({
-                    message: chalk.cyan('Would you like to continue anyway?'),
-                });
+         // warning message which lists what files may be overwritten
+         if (existingItems.length > 0) {
+            console.log();
+            consola.warn(chalk.yellow('The following file paths will be overwritten with template content:'));
+            existingItems.forEach(item => console.log(chalk.yellow(`• ${item}`)));
+            console.log();
 
-                await checkCancellation(continueCreation);
-                
-                // when user selects 'N'
-                if (!continueCreation) {
-                    console.log(chalk.red('\n❌ Package creation aborted.\n'));
-                    process.exit(0);
-                    return;
-                }
+            // prompt for if they'd like to continue despite existing files
+            const continueCreation = await confirm({
+                message: chalk.cyan('Would you like to skip the listed file paths?'),
+            });
+
+            await checkCancellation(continueCreation);
+
+            // when user selects 'Y'
+            if (continueCreation) {
+                toggles = toggles.filter(toggle => !existingItems.includes(path.join(process.cwd(), toggle)));
             }
+        }
     
             // loop through each toggle answer and create files/directories accordingly
             for (const toggle of toggles) {
