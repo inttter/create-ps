@@ -10,7 +10,7 @@ import gitUserName from 'git-user-name';
 import { consola } from 'consola'
 import { intro, multiselect, select, confirm, text, outro, spinner, cancel, isCancel } from '@clack/prompts';
 
-// api to fetch licenses from. used for the license switch case
+// api to fetch licenses from
 const baseURL = 'https://api.github.com/licenses';
 
 // allow exiting prompts with `CTRL+C`
@@ -19,6 +19,35 @@ async function checkCancellation(input, cancelMessage = 'Cancelled because `CTRL
         cancel(cancelMessage);
         process.exit(0);
     }
+}
+
+// validate dependency names (along with dependency versions)
+async function validateDependencies(depNames) {
+    const validDeps = [];
+    const invalidDeps = [];
+    
+    for (const dep of depNames) {
+        const [depName, version] = dep.split('@');
+        try {
+            const response = await axios.get(`https://registry.npmjs.org/${depName}`);
+            if (response.status === 200) {
+                if (version) { // handling versions
+                    const versions = Object.keys(response.data.versions);
+                    if (versions.includes(version)) {
+                        validDeps.push(dep);
+                    } else {
+                        invalidDeps.push(dep);
+                    }
+                } else {
+                    validDeps.push(dep);
+                }
+            }
+        } catch (error) {
+            invalidDeps.push(dep);
+        }
+    }
+    
+    return { validDeps, invalidDeps };
 }
 
 program
@@ -337,35 +366,51 @@ program
                         }
                         break;
                     case 'dependencies':
-                        const depNamesPrompt = await text({
+                        let depNamesPrompt = await text({
                             message: chalk.cyan(`Enter the name of the dependencies you want to install (comma-separated):`)
                         });
 
                         await checkCancellation(depNamesPrompt);
                             
-                        const depNames = depNamesPrompt.split(',').map(dep => dep.trim());
+                        let depNames = depNamesPrompt.split(',').map(dep => dep.trim());
+                        
+                        let { validDeps, invalidDeps } = await validateDependencies(depNames);
+                        
+                        while (invalidDeps.length > 0) {
+                            consola.warn(chalk.yellow(`The following dependencies are invalid: ${invalidDeps.join(', ')}`));
+                            depNamesPrompt = await text({
+                                message: chalk.cyan(`Please re-enter the invalid dependencies correctly (comma-separated):`)
+                            });
                             
+                            await checkCancellation(depNamesPrompt);
+                            
+                            depNames = depNamesPrompt.split(',').map(dep => dep.trim());
+                            
+                            const validationResults = await validateDependencies(depNames);
+                            validDeps = [...validDeps, ...validationResults.validDeps];
+                            invalidDeps = validationResults.invalidDeps;
+                        }
+            
                         try {
                             const s = spinner();
                             s.start(chalk.cyan('Installing dependencies from npm'));
-                            await execa('npm', ['install', ...depNames]);
+                            await execa('npm', ['install', ...validDeps]);
                             s.stop(chalk.green('🎉 Installed all dependencies!'));
-                        
-                            // check if --cjs flag is present
+            
+                            // check if '--cjs' option is present
                             const isCJS = process.argv.includes('--cjs');
-                        
-                            // check if src is selected
+            
+                            // check if 'src/' is selected
                             const isSrcSelected = toggles.includes('src/');
                                 
                             if (isSrcSelected) {
                                 const indexFileName = isCJS ? 'index.js' : 'index.mjs';
                                 const indexFile = path.join(process.cwd(), 'src', indexFileName);
                                 let indexContent = await fs.readFile(indexFile, 'utf-8');
-                        
-                                // theres no way to tell exactly how the package is called (ie. with modules, if they use {} or not)
-                                // so we just use ${dep} for the name for both parts. the comment is there to warn users about this.
+                                // theres no way to tell exactly how the package is called (ie. with modules, if they use {} or not), so we just use ${dep} for the name for both parts. 
+                                // the comments below are there to warn users about this.
                                 indexContent += `// NOTE: You might need to change these statements based on how the modules of these packages are added.\n//       Make sure you check the documentations for these packages.\n//       To run this script, run 'node src/${indexFileName}'\n`;
-                                depNames.forEach(dep => {
+                                validDeps.forEach(dep => {
                                     const depName = dep.replace(/@.*/, '');
                                     const statement = isCJS ? `const ${depName} = require('${depName}');` : `import ${depName} from '${depName}';`;
                                     indexContent += `${statement}\n`;
