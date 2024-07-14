@@ -152,25 +152,25 @@ program
                 }
             }
     
-         // warning message which lists what files may be overwritten
-         if (existingItems.length > 0) {
-            console.log();
-            consola.warn(chalk.yellow('The following file paths will be overwritten with template content:'));
-            existingItems.forEach(item => console.log(chalk.yellow(`• ${item}`)));
-            console.log();
+            // warning message which lists what files may be overwritten
+            if (existingItems.length > 0) {
+                console.log();
+                consola.warn(chalk.yellow('The following file paths will be overwritten with template content:'));
+                existingItems.forEach(item => console.log(chalk.yellow(`• ${item}`)));
+                console.log();
 
-            // prompt for if they'd like to continue despite existing files
-            const continueCreation = await confirm({
-                message: chalk.cyan('Would you like to skip the listed file paths?'),
-            });
+                // prompt for if they'd like to continue despite existing files
+                const continueCreation = await confirm({
+                    message: chalk.cyan('Would you like to skip the listed file paths?'),
+                });
 
-            await checkCancellation(continueCreation);
+                await checkCancellation(continueCreation);
 
-            // when user selects 'Y'
-            if (continueCreation) {
-                toggles = toggles.filter(toggle => !existingItems.includes(path.join(process.cwd(), toggle)));
+                // when user selects 'Y'
+                if (continueCreation) {
+                    toggles = toggles.filter(toggle => !existingItems.includes(path.join(process.cwd(), toggle)));
+                }
             }
-        }
     
             // loop through each toggle answer and create files/directories accordingly
             for (const toggle of toggles) {
@@ -522,7 +522,7 @@ program
                 // if user enters nothing, it will default to individual
                 if (!fundingType) {
                     fundingType = 'individual';
-                    console.log(chalk.yellow(`   ⚠️  No funding type specified. Defaulting to 'individual'...`));
+                    consola.warn(chalk.yellow(`No funding type specified. The field will have a default of 'individual'.`));
                 }
             
                 const fundingURL = await text({
