@@ -66,6 +66,7 @@ async function checkPackageName(packageName) {
 
 program
     .name('cps')
+    .alias('create-ps')
     .description('create-ps is a CLI tool which helps you to create the foundations for an NPM package.')
     .arguments('[packageName]')
     .option('--cjs', 'use CommonJS instead')
@@ -489,7 +490,7 @@ program
             if (toggles.includes('Author')) {
                 responses.author = await text({
                     message: chalk.cyan(`Enter the ${chalk.magenta('author')} of this package:`),
-                    placeholder: gitUserName(),
+                    placeholder: gitUserName() || '',
                 });
             }
 
@@ -582,7 +583,7 @@ program
 
             s.stop(chalk.green('🎉 `npm pkg fix` was ran successfully!'));
 
-            outro(chalk.green(`✨ Your all set! The ${chalk.green.bold('package.json')} for ${chalk.green.bold(packageName)} has been updated successfully.`));
+            outro(chalk.green(`✨ You're all set! The ${chalk.green.bold('package.json')} for ${chalk.green.bold(packageName)} has been updated successfully.`));
         } catch (err) {
             consola.error(new Error(chalk.red(`An error occurred when trying to update your ${chalk.magenta('package.json')}: ${err}`)));
         }
