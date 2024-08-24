@@ -1,6 +1,6 @@
 {
   "name": "create-ps",
-  "version": "4.4.2",
+  "version": "4.4.3",
   "author": "Inter",
   "license": "MIT",
   "description": "Creates the foundations for an NPM package.",
