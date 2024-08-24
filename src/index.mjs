@@ -50,6 +50,20 @@ async function validateDependencies(depNames) {
     return { validDeps, invalidDeps };
 }
 
+// check if the package name is taken on npm
+async function checkPackageName(packageName) {
+    try {
+        const response = await axios.get(`https://registry.npmjs.org/${packageName}`);
+        return response.status === 200; // package found, so name is not available
+    } catch (error) {
+        if (error.response && error.response.status === 404) {
+            // package not found, so name is available
+            return false;
+        }
+        throw error;
+    }
+}
+
 program
     .name('cps')
     .description('create-ps is a CLI tool which helps you to create the foundations for an NPM package.')
@@ -57,6 +71,12 @@ program
     .option('--cjs', 'use CommonJS instead')
     .action(async (packageName, options) => {
         try {
+            const isNameTaken = await checkPackageName(packageName);
+            if (isNameTaken) {
+                consola.error(chalk.red(`The package name "${packageName}" is already taken on npm. Please use a different name.`));
+                process.exit(1);
+            }
+
             // runs npm init -y
             await execa('npm', ['init', '-y']);
 
